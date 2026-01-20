@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
                 couponCode: data.couponCode,
                 customerNote: data.customerNote,
                 items: {
-                    create: cartItems.map(item => ({
+                    create: cartItems.map((item: typeof cartItems[number]) => ({
                         productId: item.productId,
                         variantId: item.variantId,
                         name: item.variant
