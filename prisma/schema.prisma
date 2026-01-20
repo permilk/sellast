@@ -1,0 +1,463 @@
+// ============================================
+// SCHEMA PRISMA - E-COMMERCE + ERP
+// Base de Datos: PostgreSQL (Supabase/Neon)
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USUARIOS Y AUTENTICACIÓN
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  name          String
+  phone         String?
+  role          UserRole  @default(CUSTOMER)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relaciones
+  addresses      Address[]
+  orders         Order[]
+  invoiceProfile InvoiceProfile?
+  favorites      Favorite[]
+  reviews        Review[]
+  cart           CartItem[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  STAFF
+}
+
+// ============================================
+// DIRECCIONES DE ENVÍO
+// ============================================
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  name       String  // Nombre del destinatario
+  street     String
+  extNumber  String
+  intNumber  String?
+  colony     String
+  city       String
+  state      String
+  zipCode    String
+  country    String  @default("México")
+  phone      String
+  isDefault  Boolean @default(false)
+  
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ============================================
+// PERFIL FISCAL (FACTURACIÓN)
+// ============================================
+
+model InvoiceProfile {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  rfc           String      @unique
+  razonSocial   String
+  regimenFiscal String      // Ej: "601 - General de Ley Personas Morales"
+  usoCfdi       String      // Ej: "G03 - Gastos en general"
+  codigoPostal  String
+  email         String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([rfc])
+  @@map("invoice_profiles")
+}
+
+// ============================================
+// CATEGORÍAS DE PRODUCTOS
+// ============================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  parentId    String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+// ============================================
+// PRODUCTOS
+// ============================================
+
+model Product {
+  id           String   @id @default(cuid())
+  sku          String   @unique
+  name         String
+  slug         String   @unique
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  comparePrice Decimal? @db.Decimal(10, 2) // Precio tachado
+  costPrice    Decimal? @db.Decimal(10, 2) // Costo real (para ganancias)
+  stock        Int      @default(0)
+  lowStockAt   Int      @default(5) // Alerta de stock bajo
+  weight       Decimal? @db.Decimal(10, 3) // En kg para envío
+  isActive     Boolean  @default(true)
+  isFeatured   Boolean  @default(false)
+  categoryId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category      Category         @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  variants      ProductVariant[]
+  orderItems    OrderItem[]
+  cartItems     CartItem[]
+  inventoryLogs InventoryLog[]
+  favorites     Favorite[]
+  reviews       Review[]
+
+  @@index([slug])
+  @@index([sku])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  name      String  // Ej: "Talla M", "Color Rojo"
+  sku       String  @unique
+  price     Decimal @db.Decimal(10, 2)
+  stock     Int     @default(0)
+  isActive  Boolean @default(true)
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+// ============================================
+// CARRITO DE COMPRAS
+// ============================================
+
+model CartItem {
+  id        String  @id @default(cuid())
+  userId    String
+  productId String
+  variantId String?
+  quantity  Int     @default(1)
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, productId, variantId])
+  @@map("cart_items")
+}
+
+// ============================================
+// PEDIDOS / ÓRDENES
+// ============================================
+
+model Order {
+  id               String        @id @default(cuid())
+  orderNumber      String        @unique // Formato: ORD-2024-00001
+  userId           String
+  addressId        String
+  status           OrderStatus   @default(PENDING)
+  paymentStatus    PaymentStatus @default(PENDING)
+  
+  // Montos
+  subtotal         Decimal       @db.Decimal(10, 2)
+  discount         Decimal       @default(0) @db.Decimal(10, 2)
+  shippingCost     Decimal       @db.Decimal(10, 2)
+  tax              Decimal       @default(0) @db.Decimal(10, 2)
+  total            Decimal       @db.Decimal(10, 2)
+  
+  // Envío
+  shippingMethod   ShippingMethod @default(STANDARD)
+  trackingNumber   String?
+  trackingUrl      String?
+  estimatedDelivery DateTime?
+  shippedAt        DateTime?
+  deliveredAt      DateTime?
+  
+  // Pago
+  paymentMethod    String?       // "stripe", "paypal", "oxxo"
+  stripePaymentId  String?
+  stripeSessionId  String?
+  
+  // Cupón
+  couponCode       String?
+  
+  // Notas
+  customerNote     String?
+  adminNote        String?
+  
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  address      Address       @relation(fields: [addressId], references: [id])
+  items        OrderItem[]
+  transactions Transaction[]
+  invoice      Invoice?
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING      // Pendiente de pago
+  CONFIRMED    // Pago confirmado
+  PROCESSING   // En preparación
+  SHIPPED      // Enviado
+  DELIVERED    // Entregado
+  CANCELLED    // Cancelado
+  REFUNDED     // Reembolsado
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ShippingMethod {
+  LOCAL         // Envío propio CDMX
+  STANDARD      // FedEx estándar
+  EXPRESS       // FedEx express
+  PICKUP        // Recoger en tienda
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productId   String
+  variantId   String?
+  name        String  // Snapshot del nombre
+  sku         String  // Snapshot del SKU
+  price       Decimal @db.Decimal(10, 2) // Precio al momento de compra
+  quantity    Int
+  subtotal    Decimal @db.Decimal(10, 2)
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+// ============================================
+// TRANSACCIONES CONTABLES
+// ============================================
+
+model Transaction {
+  id          String          @id @default(cuid())
+  orderId     String?
+  type        TransactionType
+  amount      Decimal         @db.Decimal(10, 2)
+  description String
+  reference   String?         // ID de Stripe, etc.
+  createdAt   DateTime        @default(now())
+
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([type])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  SALE           // Venta
+  REFUND         // Devolución
+  WARRANTY       // Garantía
+  MANUAL_ADJUST  // Ajuste manual
+}
+
+// ============================================
+// FACTURAS
+// ============================================
+
+model Invoice {
+  id               String   @id @default(cuid())
+  invoiceNumber    String   @unique // Folio fiscal
+  orderId          String   @unique
+  invoiceProfileId String
+  uuid             String?  // UUID del SAT
+  xmlUrl           String?  // URL del XML
+  pdfUrl           String?  // URL del PDF
+  status           String   @default("pending") // pending, stamped, cancelled
+  stampedAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  order          Order          @relation(fields: [orderId], references: [id])
+  invoiceProfile InvoiceProfile @relation(fields: [invoiceProfileId], references: [id])
+
+  @@map("invoices")
+}
+
+// ============================================
+// HISTORIAL DE INVENTARIO
+// ============================================
+
+model InventoryLog {
+  id          String          @id @default(cuid())
+  productId   String
+  type        InventoryAction
+  quantity    Int             // Positivo = entrada, Negativo = salida
+  reason      String
+  reference   String?         // ID de orden, ajuste manual, etc.
+  previousQty Int
+  newQty      Int
+  createdBy   String?         // userId o "system"
+  createdAt   DateTime        @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([type])
+  @@map("inventory_logs")
+}
+
+enum InventoryAction {
+  SALE_WEB      // Venta web
+  SALE_POS      // Venta en tienda física
+  RETURN        // Devolución
+  ADJUSTMENT    // Ajuste manual
+  RESTOCK       // Reabastecimiento
+  DAMAGED       // Producto dañado
+}
+
+// ============================================
+// CUPONES DE DESCUENTO
+// ============================================
+
+model Coupon {
+  id              String       @id @default(cuid())
+  code            String       @unique
+  type            CouponType   @default(PERCENTAGE)
+  value           Decimal      @db.Decimal(10, 2)
+  minPurchase     Decimal?     @db.Decimal(10, 2)
+  maxDiscount     Decimal?     @db.Decimal(10, 2) // Límite para porcentajes
+  usageLimit      Int?
+  usageCount      Int          @default(0)
+  validFrom       DateTime
+  validUntil      DateTime
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+
+  @@index([code])
+  @@map("coupons")
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+// ============================================
+// FAVORITOS
+// ============================================
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorites")
+}
+
+// ============================================
+// RESEÑAS / VALORACIONES
+// ============================================
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  rating    Int      // 1-5
+  title     String?
+  comment   String?
+  isApproved Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+// ============================================
+// CONFIGURACIÓN DEL SITIO
+// ============================================
+
+model SiteConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@map("site_config")
+}
