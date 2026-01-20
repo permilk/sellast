@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
                 city: address.city,
                 state: address.state,
                 zipCode: address.zipCode,
+                country: address.country,
             },
             subtotal,
             totalWeight
