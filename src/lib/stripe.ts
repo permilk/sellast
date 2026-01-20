@@ -4,14 +4,29 @@
 
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not defined');
+// Lazy initialization to avoid build-time errors
+let stripeInstance: Stripe | null = null;
+
+export function getStripe(): Stripe {
+    if (!stripeInstance) {
+        const key = process.env.STRIPE_SECRET_KEY;
+        if (!key) {
+            throw new Error('STRIPE_SECRET_KEY is not defined');
+        }
+        stripeInstance = new Stripe(key, {
+            apiVersion: '2025-12-15.clover',
+            typescript: true,
+        });
+    }
+    return stripeInstance;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-12-15.clover',
-    typescript: true,
-});
+// For backward compatibility
+export const stripe = {
+    get instance() {
+        return getStripe();
+    }
+};
 
 export interface CreateCheckoutSessionParams {
     orderId: string;
@@ -20,19 +35,16 @@ export interface CreateCheckoutSessionParams {
     lineItems: {
         name: string;
         description?: string;
-        amount: number; // En centavos MXN
+        amount: number;
         quantity: number;
         images?: string[];
     }[];
-    shippingCost: number; // En centavos MXN
+    shippingCost: number;
     successUrl: string;
     cancelUrl: string;
     metadata?: Record<string, string>;
 }
 
-/**
- * Crea una sesión de checkout de Stripe
- */
 export async function createCheckoutSession(
     params: CreateCheckoutSessionParams
 ): Promise<Stripe.Checkout.Session> {
@@ -47,7 +59,7 @@ export async function createCheckoutSession(
         metadata = {},
     } = params;
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
         mode: 'payment',
         customer_email: customerEmail,
         currency: 'mxn',
@@ -64,7 +76,6 @@ export async function createCheckoutSession(
                 },
                 quantity: item.quantity,
             })),
-            // Agregar costo de envío como line item separado
             ...(shippingCost > 0
                 ? [{
                     price_data: {
@@ -86,40 +97,30 @@ export async function createCheckoutSession(
             ...metadata,
         },
         payment_method_types: ['card'],
-        // Opciones adicionales para México
         billing_address_collection: 'required',
     });
 
     return session;
 }
 
-/**
- * Verifica y construye el evento de webhook de Stripe
- */
 export function constructWebhookEvent(
     payload: string | Buffer,
     signature: string
 ): Stripe.Event {
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) {
         throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
     }
 
-    return stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET
-    );
+    return getStripe().webhooks.constructEvent(payload, signature, secret);
 }
 
-/**
- * Procesa un reembolso
- */
 export async function createRefund(
     paymentIntentId: string,
-    amount?: number, // En centavos, undefined = reembolso total
+    amount?: number,
     reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
 ): Promise<Stripe.Refund> {
-    return stripe.refunds.create({
+    return getStripe().refunds.create({
         payment_intent: paymentIntentId,
         amount,
         reason,
