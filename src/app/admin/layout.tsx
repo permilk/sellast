@@ -5,7 +5,7 @@
 // ============================================
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 
 interface AdminLayoutProps {
@@ -118,6 +118,7 @@ const mainNav: MenuItem[] = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const [cajaAbierta, setCajaAbierta] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -198,7 +199,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </span>
                         </div>
                         <div className="caja-amount">$ 12,450.00</div>
-                        <button className="btn-close-caja">Cerrar Turno</button>
+                        <button className="btn-close-caja" onClick={() => {
+                            localStorage.removeItem('sellast_admin_session');
+                            router.push('/');
+                        }}>Cerrar Turno</button>
                     </div>
 
                     <div className="user-mini">
