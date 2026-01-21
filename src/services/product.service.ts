@@ -47,7 +47,8 @@ export class ProductService {
             const totalStock = p.variants.reduce((acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.quantity, 0), 0);
 
             return {
-                id: p.id,
+                id: mainVariant?.id || p.id,
+                productId: p.id, // Keep ref to parent
                 name: p.name,
                 category: p.category.name,
                 price: mainVariant?.salePrice.toNumber() || 0,

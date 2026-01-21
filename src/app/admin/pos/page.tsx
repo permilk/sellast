@@ -1,28 +1,33 @@
 'use client';
 
 // ============================================
-// ADMIN - POS (NUEVA VENTA)
+// ADMIN - POS (NUEVA VENTA) - CONNECTED
 // ============================================
 
-import { useState } from 'react';
-
-const productosMock = [
-    { id: '1', codigo: '750100', nombre: 'Agua Mineral 500ml', precio: 700, stock: 92 },
-    { id: '2', codigo: '750101', nombre: 'Coca Cola 600ml', precio: 1200, stock: 44 },
-    { id: '3', codigo: 'DTO001', nombre: 'Servicio Diseño DTF', precio: 1500, stock: 999 },
-    { id: '4', codigo: 'BOR005', nombre: 'Bordado Escolar', precio: 850, stock: 999 },
-    { id: '5', codigo: 'VIN010', nombre: 'Vinil Textil Metro', precio: 3200, stock: 15 },
-    { id: '6', codigo: '750102', nombre: 'Agua Ciel 1L', precio: 900, stock: 30 },
-];
+import { useState, useEffect, useRef } from 'react';
+import { processSaleAction, searchProductsAction } from './actions/pos.actions';
+import { useRouter } from 'next/navigation';
 
 export default function POSPage() {
+    const router = useRouter();
     const [busqueda, setBusqueda] = useState('');
+    const [resultados, setResultados] = useState<any[]>([]);
     const [carrito, setCarrito] = useState<any[]>([]);
     const [descuento, setDescuento] = useState(0);
+    const [loadingPay, setLoadingPay] = useState(false);
 
-    const resultados = busqueda.length > 0
-        ? productosMock.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || p.codigo.includes(busqueda))
-        : [];
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (busqueda.length > 2) {
+                const results = await searchProductsAction(busqueda);
+                setResultados(results);
+            } else {
+                setResultados([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [busqueda]);
 
     const addToCart = (producto: any) => {
         const existente = carrito.find(item => item.id === producto.id);
@@ -32,6 +37,7 @@ export default function POSPage() {
             setCarrito([...carrito, { ...producto, cantidad: 1 }]);
         }
         setBusqueda('');
+        setResultados([]);
     };
 
     const updateQty = (id: string, delta: number) => {
@@ -48,8 +54,30 @@ export default function POSPage() {
         setCarrito(carrito.filter(item => item.id !== id));
     };
 
-    const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const subtotal = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
     const total = subtotal - descuento;
+
+    const handlePay = async () => {
+        if (carrito.length === 0) return;
+        setLoadingPay(true);
+
+        const result = await processSaleAction({
+            items: carrito.map(i => ({ id: i.id, price: i.price, quantity: i.cantidad })),
+            total,
+            subtotal,
+            discount: descuento,
+            paymentMethod: 'CASH' // Hardcoded for MVP, should be a selector
+        });
+
+        if (result.success) {
+            alert('¡Venta realizada con éxito!');
+            setCarrito([]);
+            setDescuento(0);
+        } else {
+            alert('Error: ' + result.error);
+        }
+        setLoadingPay(false);
+    };
 
     return (
         <div className="pos-container">
@@ -69,9 +97,6 @@ export default function POSPage() {
                                 onChange={e => setBusqueda(e.target.value)}
                                 autoFocus
                             />
-                            <button className="scan-btn">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
-                            </button>
                         </div>
                     </div>
 
@@ -80,30 +105,20 @@ export default function POSPage() {
                             resultados.map(prod => (
                                 <div key={prod.id} className="product-item" onClick={() => addToCart(prod)}>
                                     <div className="prod-info">
-                                        <div className="prod-name">{prod.nombre}</div>
-                                        <div className="prod-meta">SKU: {prod.codigo} | Stock: {prod.stock}</div>
+                                        <div className="prod-name">{prod.name}</div>
+                                        <div className="prod-meta">SKU: {prod.sku || 'N/A'} | Stock: {prod.stock}</div>
                                     </div>
-                                    <div className="prod-price">${prod.precio}</div>
+                                    <div className="prod-price">${prod.price}</div>
                                     <button className="add-btn">+</button>
                                 </div>
                             ))
+                        ) : busqueda.length > 0 ? (
+                            <div className="empty-state">
+                                <p>No se encontraron productos</p>
+                            </div>
                         ) : (
                             <div className="empty-state">
                                 <p>Escribe para buscar o escanea un código</p>
-                            </div>
-                        )}
-
-                        {busqueda === '' && (
-                            <div className="quick-grid">
-                                <h3>Más Vendidos</h3>
-                                <div className="grid-items">
-                                    {productosMock.slice(0, 4).map(prod => (
-                                        <div key={prod.id} className="quick-card" onClick={() => addToCart(prod)}>
-                                            <div className="qc-name">{prod.nombre}</div>
-                                            <div className="qc-price">${prod.precio}</div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         )}
                     </div>
@@ -123,8 +138,8 @@ export default function POSPage() {
                             carrito.map(item => (
                                 <div key={item.id} className="cart-row">
                                     <div className="row-main">
-                                        <div className="row-name">{item.nombre}</div>
-                                        <div className="row-price">${item.precio} x {item.cantidad}</div>
+                                        <div className="row-name">{item.name}</div>
+                                        <div className="row-price">${item.price} x {item.cantidad}</div>
                                     </div>
                                     <div className="row-actions">
                                         <div className="qty-control">
@@ -136,7 +151,7 @@ export default function POSPage() {
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                                         </button>
                                     </div>
-                                    <div className="row-total">${item.precio * item.cantidad}</div>
+                                    <div className="row-total">${item.price * item.cantidad}</div>
                                 </div>
                             ))
                         )}
@@ -163,7 +178,13 @@ export default function POSPage() {
 
                         <div className="cart-buttons">
                             <button className="btn-clear" onClick={() => setCarrito([])}>Limpiar</button>
-                            <button className="btn-pay" disabled={carrito.length === 0}>Pagar</button>
+                            <button
+                                className="btn-pay"
+                                disabled={carrito.length === 0 || loadingPay}
+                                onClick={handlePay}
+                            >
+                                {loadingPay ? 'Procesando...' : 'Pagar (Efectivo)'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -180,9 +201,8 @@ export default function POSPage() {
                 
                 .input-group { position: relative; display: flex; align-items: center; }
                 .search-icon { position: absolute; left: 1rem; color: #64748b; }
-                .input-group input { width: 100%; padding: 1rem 1rem 1rem 3rem; border: 1px solid #e2e8f0; border-radius: 8px 0 0 8px; font-size: 1rem; outline: none; transition: all 0.2s; }
+                .input-group input { width: 100%; padding: 1rem 1rem 1rem 3rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.2s; }
                 .input-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-                .scan-btn { padding: 0 1.5rem; background: #2563eb; color: #fff; border: none; border-radius: 0 8px 8px 0; cursor: pointer; display: flex; align-items: center; }
                 
                 .results-list { flex: 1; overflow-y: auto; padding: 1rem; background: #f8fafc; }
                 .product-item { background: #fff; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
@@ -194,14 +214,6 @@ export default function POSPage() {
                 .add-btn { width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; color: #2563eb; border: none; font-weight: 700; display: flex; align-items: center; justify-content: center; }
                 
                 .empty-state { text-align: center; color: #94a3b8; padding: 3rem; }
-                
-                .quick-grid { margin-top: 2rem; }
-                .quick-grid h3 { font-size: 1rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; }
-                .grid-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
-                .quick-card { background: #fff; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; text-align: center; transition: all 0.2s; }
-                .quick-card:hover { border-color: #2563eb; background: #eff6ff; }
-                .qc-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; }
-                .qc-price { font-weight: 700; color: #2563eb; }
 
                 /* CART */
                 .pos-cart { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; }
