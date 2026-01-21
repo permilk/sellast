@@ -92,13 +92,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
                 name,
                 description,
                 price,
-                comparePrice,
-                costPrice,
                 stock,
-                lowStockAt,
                 weight,
                 isActive,
-                isFeatured,
                 categoryId,
             },
             include: {
