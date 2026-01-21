@@ -105,39 +105,6 @@ export default function POSSalesPage() {
 
     return (
         <div className="pos-module" style={{ padding: 0 }}>
-            {/* POS Header */}
-            <div className="pos-header">
-                <div className="pos-header-logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
-                    Punto de Venta 2026
-                </div>
-
-                <div className="pos-header-nav">
-                    <div className="pos-nav-item" onClick={() => router.push('/admin/pos/dashboard')}>Dashboard</div>
-                    <div className="pos-nav-item active">Ventas</div>
-                    <div className="pos-nav-item">Pedidos</div>
-                    <div className="pos-nav-item">Productos</div>
-                    <div className="pos-nav-item">Inventario</div>
-                    <div className="pos-nav-item">Complementos</div>
-                    <div className="pos-nav-item">Vencimientos</div>
-                    <div className="pos-nav-item">Clientes</div>
-                    <div className="pos-nav-item">Compras</div>
-                    <div className="pos-nav-item">Proveedores</div>
-                    <div className="pos-nav-item">Reportes</div>
-                    <div className="pos-nav-item">Configuración</div>
-                </div>
-
-                <div className="pos-header-user">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    Administrador ▾
-                </div>
-            </div>
 
             {/* Main Content */}
             <div style={{ padding: '1.25rem', background: '#f1f5f9', height: 'calc(100vh - 60px)' }}>
