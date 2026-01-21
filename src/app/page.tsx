@@ -1,332 +1,158 @@
-import Link from "next/link";
+'use client';
+import Link from 'next/link';
 
-// Datos de ejemplo para productos
-const featuredProducts = [
-  {
-    id: 1,
-    name: "Bolso Premium Leather",
-    category: "Accesorios",
-    price: 1299,
-    originalPrice: 1599,
-    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=400&fit=crop",
-    badge: "Oferta",
-  },
-  {
-    id: 2,
-    name: "Reloj Clásico Dorado",
-    category: "Joyería",
-    price: 2499,
-    image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=400&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Zapatillas Urban Style",
-    category: "Calzado",
-    price: 1899,
-    originalPrice: 2299,
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    badge: "Nuevo",
-  },
-  {
-    id: 4,
-    name: "Lentes de Sol Aviator",
-    category: "Accesorios",
-    price: 799,
-    image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop",
-  },
+const productos = [
+  { id: '1', slug: 'rosa-elegante-bordado', nombre: 'Rosa Elegante', categoria: 'Bordados', precio: 89, precioAnterior: 129, imagen: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop', badge: 'Popular' },
+  { id: '2', slug: 'mariposa-monarca-dtf', nombre: 'Mariposa Monarca', categoria: 'DTF', precio: 65, imagen: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=400&h=400&fit=crop' },
+  { id: '3', slug: 'lettering-script-vinil', nombre: 'Lettering Script', categoria: 'Vinil', precio: 45, imagen: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&h=400&fit=crop' },
+  { id: '4', slug: 'mandala-floral-bordado', nombre: 'Mandala Floral', categoria: 'Bordados', precio: 149, imagen: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=400&fit=crop', badge: 'Nuevo' },
 ];
 
-const categories = [
-  {
-    name: "Electrónica",
-    count: 42,
-    image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=500&fit=crop",
-  },
-  {
-    name: "Moda",
-    count: 128,
-    image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=500&fit=crop",
-  },
-  {
-    name: "Hogar",
-    count: 67,
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=500&fit=crop",
-  },
-  {
-    name: "Deportes",
-    count: 89,
-    image: "https://images.unsplash.com/photo-1461896836934- voices0b95adc?w=400&h=500&fit=crop",
-  },
+const categorias = [
+  { id: 'bordados', nombre: 'Bordados', desc: 'Diseños para máquina bordadora', imagen: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&h=300&fit=crop' },
+  { id: 'dtf', nombre: 'DTF', desc: 'Transfers de alta calidad', imagen: 'https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=300&fit=crop' },
+  { id: 'vinil', nombre: 'Vinil', desc: 'Plantillas de corte', imagen: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=300&fit=crop' },
 ];
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-  }).format(price);
-}
 
 export default function HomePage() {
   return (
-    <>
+    <div className="home">
       {/* Header */}
       <header className="header">
-        <div className="container">
-          <div className="header-inner">
-            <Link href="/" className="logo">
-              Sell<span>ast</span>
-            </Link>
-
-            <nav className="nav">
-              <Link href="/productos" className="nav-link">Productos</Link>
-              <Link href="/categorias" className="nav-link">Categorías</Link>
-              <Link href="/ofertas" className="nav-link">Ofertas</Link>
-              <Link href="/nosotros" className="nav-link">Nosotros</Link>
-            </nav>
-
-            <div className="nav-icons">
-              <button className="icon-btn" aria-label="Buscar">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-              </button>
-              <button className="icon-btn" aria-label="Favoritos">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              </button>
-              <button className="icon-btn" aria-label="Carrito">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="9" cy="21" r="1" />
-                  <circle cx="20" cy="21" r="1" />
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                </svg>
-                <span className="cart-badge">3</span>
-              </button>
-            </div>
-          </div>
+        <div className="header-container">
+          <Link href="/" className="logo">Sell<span>ast</span></Link>
+          <nav className="nav">
+            <Link href="/productos">Catálogo</Link>
+            <Link href="/productos?cat=bordados">Bordados</Link>
+            <Link href="/productos?cat=dtf">DTF</Link>
+            <Link href="/productos?cat=vinil">Vinil</Link>
+          </nav>
+          <Link href="/carrito" className="cart">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+            <span>0</span>
+          </Link>
         </div>
       </header>
 
       {/* Hero */}
       <section className="hero">
-        <div className="container">
-          <div className="hero-content">
-            <div className="hero-text">
-              <span className="hero-badge">✨ Envío gratis arriba de $500</span>
-              <h1 className="hero-title">
-                Descubre el Estilo que te <span className="accent">Define</span>
-              </h1>
-              <p className="hero-description">
-                Explora nuestra colección exclusiva de productos premium.
-                Calidad excepcional, diseño único y la mejor experiencia de compra.
-              </p>
-              <div className="hero-cta">
-                <Link href="/productos" className="btn btn-primary btn-lg">
-                  Explorar Productos
-                </Link>
-                <Link href="/ofertas" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: '#fff' }}>
-                  Ver Ofertas
-                </Link>
-              </div>
-            </div>
-            <div className="hero-image">
-              <img
-                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=700&fit=crop"
-                alt="Colección Premium"
-              />
-            </div>
+        <div className="hero-content">
+          <span className="hero-tag">Diseños Profesionales</span>
+          <h1>Bordados, DTF y Corte de Vinil</h1>
+          <p>Descarga diseños de alta calidad para tu negocio de personalización textil</p>
+          <div className="hero-btns">
+            <Link href="/productos" className="btn-primary">Ver Catálogo</Link>
+            <Link href="/productos?cat=bordados" className="btn-secondary">Bordados</Link>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="features section">
-        <div className="container">
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🚚</div>
-              <h3 className="feature-title">Envío Gratis</h3>
-              <p className="feature-description">En compras mayores a $500</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🔒</div>
-              <h3 className="feature-title">Pago Seguro</h3>
-              <p className="feature-description">Transacciones 100% protegidas</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">↩️</div>
-              <h3 className="feature-title">30 Días</h3>
-              <p className="feature-description">Devolución sin preguntas</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">💬</div>
-              <h3 className="feature-title">Soporte 24/7</h3>
-              <p className="feature-description">Estamos para ayudarte</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-subtitle">Lo más vendido</span>
-            <h2 className="section-title">Productos Destacados</h2>
-          </div>
-
-          <div className="products-grid">
-            {featuredProducts.map((product) => (
-              <article key={product.id} className="product-card">
-                <div className="product-image">
-                  <img src={product.image} alt={product.name} />
-                  {product.badge && (
-                    <span className="product-badge">{product.badge}</span>
-                  )}
-                  <div className="product-actions">
-                    <button className="product-action-btn" title="Añadir a favoritos">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    </button>
-                    <button className="product-action-btn" title="Vista rápida">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div className="product-info">
-                  <span className="product-category">{product.category}</span>
-                  <h3 className="product-name">
-                    <Link href={`/producto/${product.id}`}>{product.name}</Link>
-                  </h3>
-                  <div className="product-price">
-                    <span className="current-price">{formatPrice(product.price)}</span>
-                    {product.originalPrice && (
-                      <span className="original-price">{formatPrice(product.originalPrice)}</span>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-2xl)' }}>
-            <Link href="/productos" className="btn btn-outline">
-              Ver Todos los Productos →
+      {/* Categorías */}
+      <section className="section categorias">
+        <h2>Nuestras Categorías</h2>
+        <div className="cat-grid">
+          {categorias.map(cat => (
+            <Link href={`/productos?cat=${cat.id}`} key={cat.id} className="cat-card">
+              <img src={cat.imagen} alt={cat.nombre} />
+              <div className="cat-info"><h3>{cat.nombre}</h3><p>{cat.desc}</p></div>
             </Link>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="section" style={{ background: 'var(--color-bg)' }}>
-        <div className="container">
-          <div className="section-header">
-            <span className="section-subtitle">Explora</span>
-            <h2 className="section-title">Compra por Categoría</h2>
-          </div>
-
-          <div className="categories-grid">
-            {categories.map((category, index) => (
-              <Link key={index} href={`/categoria/${category.name.toLowerCase()}`} className="category-card">
-                <img src={category.image} alt={category.name} />
-                <div className="category-overlay">
-                  <h3 className="category-name">{category.name}</h3>
-                  <span className="category-count">{category.count} productos</span>
+      {/* Productos Destacados */}
+      <section className="section productos">
+        <h2>Productos Destacados</h2>
+        <div className="prod-grid">
+          {productos.map(p => (
+            <Link href={`/productos/${p.slug}`} key={p.id} className="prod-card">
+              <div className="prod-img">
+                <img src={p.imagen} alt={p.nombre} />
+                {p.badge && <span className="badge">{p.badge}</span>}
+              </div>
+              <div className="prod-info">
+                <span className="prod-cat">{p.categoria}</span>
+                <h3>{p.nombre}</h3>
+                <div className="prod-price">
+                  <span>${p.precio}</span>
+                  {p.precioAnterior && <span className="old">${p.precioAnterior}</span>}
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="section" style={{ background: 'var(--gradient-accent)', color: '#fff', textAlign: 'center' }}>
-        <div className="container">
-          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', marginBottom: 'var(--space-md)' }}>
-            ¿Quieres ofertas exclusivas?
-          </h2>
-          <p style={{ opacity: 0.9, marginBottom: 'var(--space-xl)', maxWidth: '500px', marginInline: 'auto' }}>
-            Suscríbete a nuestro newsletter y recibe un 10% de descuento en tu primera compra.
-          </p>
-          <form style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '500px', marginInline: 'auto' }}>
-            <input
-              type="email"
-              placeholder="Tu correo electrónico"
-              style={{
-                flex: 1,
-                minWidth: '250px',
-                padding: 'var(--space-md) var(--space-lg)',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '1rem',
-              }}
-            />
-            <button type="submit" className="btn" style={{ background: 'var(--color-primary)', color: '#fff' }}>
-              Suscribirse
-            </button>
-          </form>
-        </div>
+        <div className="section-cta"><Link href="/productos" className="btn-outline">Ver Todos →</Link></div>
       </section>
 
       {/* Footer */}
       <footer className="footer">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="footer-brand">
-              <div className="logo">Sell<span>ast</span></div>
-              <p className="footer-description">
-                Tu destino para productos premium. Calidad excepcional y la mejor experiencia de compra online.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="footer-title">Tienda</h4>
-              <div className="footer-links">
-                <Link href="/productos" className="footer-link">Todos los Productos</Link>
-                <Link href="/ofertas" className="footer-link">Ofertas</Link>
-                <Link href="/nuevos" className="footer-link">Novedades</Link>
-                <Link href="/categorias" className="footer-link">Categorías</Link>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="footer-title">Ayuda</h4>
-              <div className="footer-links">
-                <Link href="/contacto" className="footer-link">Contacto</Link>
-                <Link href="/envios" className="footer-link">Envíos</Link>
-                <Link href="/devoluciones" className="footer-link">Devoluciones</Link>
-                <Link href="/faq" className="footer-link">FAQ</Link>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="footer-title">Legal</h4>
-              <div className="footer-links">
-                <Link href="/privacidad" className="footer-link">Privacidad</Link>
-                <Link href="/terminos" className="footer-link">Términos</Link>
-                <Link href="/cookies" className="footer-link">Cookies</Link>
-              </div>
-            </div>
+        <div className="footer-content">
+          <div className="footer-brand"><span className="logo">Sell<span>ast</span></span><p>Diseños profesionales para tu negocio</p></div>
+          <div className="footer-links">
+            <h4>Catálogo</h4>
+            <Link href="/productos?cat=bordados">Bordados</Link>
+            <Link href="/productos?cat=dtf">DTF</Link>
+            <Link href="/productos?cat=vinil">Vinil</Link>
           </div>
-
-          <div className="footer-bottom">
-            <span className="footer-copyright">
-              © 2026 Sellast. Todos los derechos reservados.
-            </span>
-            <div className="payment-icons">
-              <span>💳</span>
-              <span>🅿️</span>
-              <span>💵</span>
-            </div>
+          <div className="footer-links">
+            <h4>Soporte</h4>
+            <Link href="/contacto">Contacto</Link>
+            <Link href="/faq">FAQ</Link>
           </div>
         </div>
+        <div className="footer-bottom">© 2026 Sellast. Todos los derechos reservados.</div>
       </footer>
-    </>
+
+      <style jsx>{`
+                .home{min-height:100vh}
+                .header{background:#1a1a2e;padding:1rem 2rem;position:sticky;top:0;z-index:100}
+                .header-container{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+                .logo{font-size:1.5rem;font-weight:700;color:#fff;text-decoration:none}
+                .logo span{color:#e94560}
+                .nav{display:flex;gap:2rem}
+                .nav a{color:rgba(255,255,255,0.8);text-decoration:none}
+                .nav a:hover{color:#fff}
+                .cart{position:relative;color:#fff}
+                .cart span{position:absolute;top:-8px;right:-8px;background:#e94560;color:#fff;font-size:0.7rem;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+                .hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:6rem 2rem;text-align:center}
+                .hero-content{max-width:800px;margin:0 auto}
+                .hero-tag{display:inline-block;background:rgba(233,69,96,0.2);color:#e94560;padding:0.5rem 1rem;border-radius:20px;font-size:0.875rem;font-weight:600;margin-bottom:1.5rem}
+                .hero h1{font-size:3rem;color:#fff;margin-bottom:1rem;line-height:1.2}
+                .hero p{font-size:1.25rem;color:rgba(255,255,255,0.7);margin-bottom:2rem}
+                .hero-btns{display:flex;gap:1rem;justify-content:center}
+                .btn-primary{padding:1rem 2rem;background:linear-gradient(135deg,#e94560,#ff6b6b);color:#fff;text-decoration:none;border-radius:8px;font-weight:600}
+                .btn-secondary{padding:1rem 2rem;background:rgba(255,255,255,0.1);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;border:1px solid rgba(255,255,255,0.2)}
+                .section{max-width:1400px;margin:0 auto;padding:4rem 2rem}
+                .section h2{font-size:2rem;color:#1a1a2e;margin-bottom:2rem;text-align:center}
+                .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+                .cat-card{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;text-decoration:none}
+                .cat-card img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
+                .cat-card:hover img{transform:scale(1.05)}
+                .cat-info{position:absolute;bottom:0;left:0;right:0;padding:2rem;background:linear-gradient(transparent,rgba(0,0,0,0.8))}
+                .cat-info h3{color:#fff;font-size:1.5rem;margin-bottom:0.25rem}
+                .cat-info p{color:rgba(255,255,255,0.7);font-size:0.9rem}
+                .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+                .prod-card{background:#fff;border-radius:12px;overflow:hidden;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:all 0.3s}
+                .prod-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.1)}
+                .prod-img{position:relative;aspect-ratio:1}
+                .prod-img img{width:100%;height:100%;object-fit:cover}
+                .badge{position:absolute;top:0.75rem;left:0.75rem;background:#e94560;color:#fff;padding:0.25rem 0.75rem;border-radius:4px;font-size:0.75rem;font-weight:600}
+                .prod-info{padding:1.25rem}
+                .prod-cat{font-size:0.75rem;text-transform:uppercase;color:#e94560;font-weight:600}
+                .prod-info h3{font-size:1rem;color:#1a1a2e;margin:0.5rem 0}
+                .prod-price{display:flex;gap:0.5rem;align-items:center}
+                .prod-price span{font-size:1.1rem;font-weight:700;color:#1a1a2e}
+                .prod-price .old{font-size:0.9rem;color:#94a3b8;text-decoration:line-through;font-weight:400}
+                .section-cta{text-align:center;margin-top:2rem}
+                .btn-outline{padding:0.875rem 2rem;border:2px solid #e94560;color:#e94560;text-decoration:none;border-radius:8px;font-weight:600}
+                .footer{background:#1a1a2e;color:#fff;padding:4rem 2rem 2rem}
+                .footer-content{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:3rem}
+                .footer-brand p{color:rgba(255,255,255,0.6);margin-top:0.5rem}
+                .footer-links h4{margin-bottom:1rem;color:#fff}
+                .footer-links a{display:block;color:rgba(255,255,255,0.6);text-decoration:none;padding:0.25rem 0}
+                .footer-bottom{max-width:1400px;margin:3rem auto 0;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);text-align:center;color:rgba(255,255,255,0.5);font-size:0.875rem}
+                @media(max-width:900px){.cat-grid{grid-template-columns:1fr}.prod-grid{grid-template-columns:repeat(2,1fr)}.footer-content{grid-template-columns:1fr}.nav{display:none}}
+            `}</style>
+    </div>
   );
 }
