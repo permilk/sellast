@@ -269,42 +269,38 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </main>
 
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
-
                 :root {
-                    --bg-page: #0B0F19;     /* Deep Navy */
-                    --bg-panel: #111827;    /* Slate 900 */
-                    --bg-hover: #1f2937;    /* Slate 800 */
+                    --sidebar-bg: #1F2937;
+                    --sidebar-border: #374151;
+                    --sidebar-text: #F9FAFB;
+                    --sidebar-text-muted: #9CA3AF;
+                    --sidebar-hover: #374151;
+                    --sidebar-active: #2563EB;
                     
-                    /* Primary Accent - Pink Coral */
-                    --primary: #FF4D6D;     
-                    --primary-hover: #fa3e5f;
-                    --primary-dim: rgba(255, 77, 109, 0.15);
-
-                    /* Text */
-                    --text-main: #F8FAFC;   /* Slate 50 */
-                    --text-muted: #94A3B8;  /* Slate 400 */
-                    
-                    /* Borders */
-                    --border: #1e293b;      /* Slate 800 */
-                    --border-light: #334155;
+                    --content-bg: #F3F4F6;
+                    --content-text: #1F2937;
                 }
 
-                body { background: var(--bg-page); color: var(--text-main); margin: 0; font-family: 'Outfit', sans-serif; }
+                body { 
+                    background: var(--content-bg); 
+                    color: var(--content-text); 
+                    margin: 0; 
+                    font-family: var(--font-primary, 'Inter', sans-serif); 
+                }
 
                 /* SCROLLBAR */
                 ::-webkit-scrollbar { width: 6px; height: 6px; }
-                ::-webkit-scrollbar-track { background: var(--bg-page); }
-                ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-                ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+                ::-webkit-scrollbar-track { background: #E5E7EB; }
+                ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 3px; }
+                ::-webkit-scrollbar-thumb:hover { background: #6B7280; }
 
-                .admin-layout { display: flex; min-height: 100vh; font-family: 'Outfit', sans-serif; }
+                .admin-layout { display: flex; min-height: 100vh; font-family: var(--font-primary, 'Inter', sans-serif); }
                 
                 /* SIDEBAR */
                 .sidebar {
                     width: 240px; 
-                    background: var(--bg-panel);
-                    border-right: 1px solid var(--border);
+                    background: var(--sidebar-bg);
+                    border-right: 1px solid var(--sidebar-border);
                     display: flex;
                     flex-direction: column;
                     position: fixed;
@@ -315,21 +311,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 
                 .sidebar-header {
                     padding: 1.5rem;
-                    border-bottom: 1px solid var(--border);
+                    border-bottom: 1px solid var(--sidebar-border);
                     display: flex;
                     align-items: center;
                 }
                 
                 .logo-container { display: flex; align-items: center; gap: 0.75rem; }
-                /* Minimalist Text Logo with Serif font for elegance */
                 .logo-text { 
-                    font-family: 'Playfair Display', serif; 
+                    font-family: var(--font-primary, 'Inter', sans-serif); 
                     font-size: 1.5rem; 
-                    font-weight: 600; 
-                    color: var(--text-main);
+                    font-weight: 700; 
+                    color: var(--sidebar-text);
                     letter-spacing: -0.02em;
                 }
-                .logo-text .highlight { color: var(--primary); }
+                .logo-text .highlight { color: var(--sidebar-active); }
                 
                 .sidebar-content { 
                     flex: 1; 
@@ -350,7 +345,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     gap: 0.85rem;
                     padding: 0.75rem 1rem;
                     border-radius: 8px;
-                    color: var(--text-muted);
+                    color: var(--sidebar-text-muted);
                     text-decoration: none;
                     transition: all 0.2s;
                     cursor: pointer;
@@ -358,14 +353,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     font-size: 0.9rem;
                     position: relative;
                     font-weight: 400;
+                    font-family: var(--font-primary, 'Inter', sans-serif);
                 }
                 .nav-item:hover, .nav-item.header:hover { 
-                    background: var(--bg-hover); 
-                    color: var(--text-main); 
+                    background: var(--sidebar-hover); 
+                    color: var(--sidebar-text); 
                 }
                 .nav-item.active { 
-                    background: var(--primary-dim); 
-                    color: var(--primary); 
+                    background: rgba(37, 99, 235, 0.15); 
+                    color: var(--sidebar-active); 
                     font-weight: 500; 
                 }
                 
@@ -394,7 +390,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     top: 0;
                     bottom: 0;
                     width: 1px;
-                    background: var(--border);
+                    background: var(--sidebar-border);
                 }
                 
                 .nav-children .nav-item {
@@ -402,8 +398,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     font-size: 0.85rem;
                     color: var(--text-muted);
                 }
-                .nav-children .nav-item:hover { color: var(--text-main); background: transparent; }
-                .nav-children .nav-item.active { color: var(--primary); background: transparent; font-weight: 500; }
+                .nav-children .nav-item:hover { color: var(--sidebar-text); background: transparent; }
+                .nav-children .nav-item.active { color: var(--sidebar-active); background: transparent; font-weight: 500; }
                 .nav-children .nav-item.active::before {
                     content: '';
                     position: absolute;
@@ -413,70 +409,71 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     width: 4px;
                     height: 4px;
                     border-radius: 50%;
-                    background: var(--primary);
+                    background: var(--sidebar-active);
                 }
 
 
                 /* PRIMARY BUTTON ITEM */
                 .nav-item.btn-primary {
-                    background: var(--primary);
+                    background: var(--sidebar-active);
                     color: white;
                     margin: 1rem 0;
                     justify-content: center;
                     font-weight: 500;
-                    box-shadow: 0 4px 12px rgba(255, 77, 109, 0.3);
-                    border: 1px solid var(--primary);
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+                    border: 1px solid var(--sidebar-active);
                 }
                 .nav-item.btn-primary:hover {
-                    background: var(--primary-hover);
+                    background: #1D4ED8;
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 16px rgba(255, 77, 109, 0.4);
+                    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
                 }
 
                 .nav-icon { min-width: 20px; display: flex; justify-content: center; opacity: 0.8; }
                 .nav-label { flex: 1; }
 
                 /* HEADER STYLES */
-                .sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--border); background: var(--bg-panel); }
+                .sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--sidebar-border); background: var(--sidebar-bg); }
                 
                 .caja-widget { 
-                    background: rgba(255,255,255,0.03); 
+                    background: rgba(255,255,255,0.05); 
                     padding: 1rem; 
                     border-radius: 12px; 
-                    border: 1px solid var(--border); 
+                    border: 1px solid var(--sidebar-border); 
                     margin-bottom: 1.5rem; 
                 }
                 .caja-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-                .caja-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+                .caja-title { font-size: 0.75rem; font-weight: 600; color: var(--sidebar-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
                 .caja-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; text-transform: uppercase; }
                 .caja-badge.active { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
                 
-                .caja-amount { font-size: 1.25rem; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; font-family: 'Outfit', sans-serif; }
+                .caja-amount { font-size: 1.25rem; font-weight: 600; color: var(--sidebar-text); margin-bottom: 1rem; font-family: var(--font-primary, 'Inter', sans-serif); }
                 
                 .btn-close-caja { 
                     width: 100%; font-size: 0.8rem; padding: 0.5rem; 
                     background: transparent; 
-                    border: 1px solid var(--border-light); 
+                    border: 1px solid var(--sidebar-border); 
                     border-radius: 8px; 
-                    color: var(--text-muted); 
+                    color: var(--sidebar-text-muted); 
                     cursor: pointer; transition: all 0.2s; 
+                    font-family: var(--font-primary, 'Inter', sans-serif);
                 }
                 .btn-close-caja:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
                 
                 .user-mini { display: flex; align-items: center; gap: 0.75rem; }
                 .user-avatar { 
                     width: 36px; height: 36px; 
-                    background: var(--primary); 
+                    background: var(--sidebar-active); 
                     color: white;
                     border-radius: 50%; 
                     display: flex; align-items: center; justify-content: center; 
                     font-weight: 600; 
                     font-size: 0.8rem; 
-                    box-shadow: 0 0 0 2px rgba(255, 77, 109, 0.2);
+                    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
                 }
                 .user-info { display: flex; flex-direction: column; }
-                .user-name { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
-                .user-role { font-size: 0.75rem; color: var(--text-muted); }
+                .user-name { font-size: 0.9rem; font-weight: 500; color: var(--sidebar-text); font-family: var(--font-primary, 'Inter', sans-serif); }
+                .user-role { font-size: 0.75rem; color: var(--sidebar-text-muted); }
 
                 /* MAIN CONTENT - HYBRID LIGHT THEME OVERRIDE */
                 .main-content { 
