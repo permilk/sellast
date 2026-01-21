@@ -244,7 +244,7 @@ export async function crearFactura(orderId: string, datosFactura: DatosFactura):
             orderNumber: orden.orderNumber,
             items: orden.items.map(item => ({
                 name: item.name,
-                sku: item.sku,
+                sku: item.sku || 'S/N',
                 price: Number(item.price),
                 quantity: item.quantity,
             })),
