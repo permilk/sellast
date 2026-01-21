@@ -220,8 +220,8 @@ export default function POSSalesPage() {
                         overflow: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
-                        height: 'fit-content',
-                        maxHeight: 'calc(100vh - 140px)'
+                        height: 'calc(100vh - 140px)',
+                        minHeight: '600px'
                     }}>
                         {/* Cart Header - Blue */}
                         <div style={{
@@ -279,12 +279,13 @@ export default function POSSalesPage() {
 
                         {/* Cart Items */}
                         <div style={{
-                            flexGrow: 1,
-                            height: '400px',
+                            flex: 1,
+                            minHeight: '200px',
                             overflowY: 'auto',
                             padding: '1rem 1.25rem',
                             background: '#F8F9FA',
-                            border: '1px solid #e5e7eb'
+                            borderTop: '1px solid #e5e7eb',
+                            borderBottom: '1px solid #e5e7eb'
                         }}>
                             {carrito.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '2rem 0', color: '#9ca3af' }}>
