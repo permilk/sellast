@@ -396,7 +396,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 .nav-children .nav-item {
                     padding: 0.5rem 0.75rem 0.5rem 2.5rem; /* Indented text */
                     font-size: 0.85rem;
-                    color: var(--text-muted);
+                    color: var(--sidebar-text-muted);
                 }
                 .nav-children .nav-item:hover { color: var(--sidebar-text); background: transparent; }
                 .nav-children .nav-item.active { color: var(--sidebar-active); background: transparent; font-weight: 500; }
