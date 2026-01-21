@@ -79,8 +79,24 @@ export default function CajaPage() {
                                     </td>
                                     <td>{mov.fecha}</td>
                                     <td>
-                                        <button className="btn-view">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                                        <button
+                                            className="btn-view"
+                                            onClick={() => alert(`Ver detalle: ${mov.concepto}`)}
+                                            style={{
+                                                padding: '0.5rem 0.75rem',
+                                                background: '#CFFAFE',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                color: '#06B6D4',
+                                                fontWeight: 600,
+                                                fontSize: '0.85rem'
+                                            }}
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                             Ver
                                         </button>
                                     </td>

@@ -53,7 +53,7 @@ export default function FinanzasPage() {
             <div className="content-card">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-serif text-white">Últimas Transacciones</h2>
-                    <button className="text-sm text-pink-500 hover:text-pink-400 transition-colors">Ver Todo</button>
+                    <button className="text-sm text-pink-500 hover:text-pink-400 transition-colors" onClick={() => alert('Navegar a historial de transacciones')}>Ver Todo</button>
                 </div>
 
                 <div className="overflow-x-auto">

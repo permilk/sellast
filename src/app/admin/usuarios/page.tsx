@@ -8,7 +8,7 @@ export default function UsuariosPage() {
                     <h1 className="text-3xl font-serif text-white mb-2">Usuarios</h1>
                     <p className="text-slate-400 font-light">Gestión de acceso y roles del sistema.</p>
                 </div>
-                <button className="btn-primary">
+                <button className="btn-primary" onClick={() => alert('Abrir modal nuevo usuario')}>
                     + Nuevo Usuario
                 </button>
             </div>
@@ -57,9 +57,26 @@ export default function UsuariosPage() {
                                     </td>
                                     <td className="py-4 text-slate-400 font-light">{user.last}</td>
                                     <td className="py-4 pr-6 text-right">
-                                        <button className="text-slate-500 hover:text-white transition-colors p-2 hover:bg-slate-700/50 rounded-lg">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
-                                        </button>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.35rem' }}>
+                                            <button
+                                                onClick={() => alert(`Editar usuario: ${user.name}`)}
+                                                style={{ width: '32px', height: '32px', background: '#FEF3C7', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                title="Editar"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                            </button>
+                                            <button
+                                                onClick={() => alert(`${user.status === 'active' ? 'Desactivar' : 'Activar'} usuario: ${user.name}`)}
+                                                style={{ width: '32px', height: '32px', background: user.status === 'active' ? '#FEE2E2' : '#D1FAE5', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                title={user.status === 'active' ? 'Desactivar' : 'Activar'}
+                                            >
+                                                {user.status === 'active' ? (
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
+                                                ) : (
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                                                )}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
