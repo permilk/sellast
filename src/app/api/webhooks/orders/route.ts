@@ -21,12 +21,11 @@ const OrderUpdateSchema = z.object({
     orderId: z.string().cuid(),
     status: z.enum([
         'PENDING',
-        'CONFIRMED',
         'PROCESSING',
         'SHIPPED',
         'DELIVERED',
         'CANCELLED',
-        'REFUNDED',
+        'RETURNED',
     ]),
     trackingNumber: z.string().optional(),
     trackingUrl: z.string().url().optional(),
@@ -122,10 +121,11 @@ export async function POST(request: NextRequest) {
 interface OrderForNotification {
     id: string;
     orderNumber: string;
+    status: string;
     user: {
-        name: string;
+        name: string | null;
         email: string;
-        phone: string | null;
+        // phone: string | null; // Removed phone as it is not on User model in schema currently or might be on Address
     };
 }
 
@@ -136,22 +136,27 @@ interface TrackingInfo {
 }
 
 async function handleStatusNotification(
-    order: OrderForNotification,
+    order: any, // Using any temporarily or the proper type inferred from Prisma
     previousStatus: string,
     tracking: TrackingInfo
 ) {
     const { user } = order;
+    if (!user || !user.email) return;
 
-    switch (order.orderNumber) {
+    const userName = user.name || 'Cliente';
+
+    switch (order.status) {
         // Notificación: Pedido Enviado
         case 'SHIPPED':
             if (tracking.trackingNumber) {
                 // WhatsApp
+                // WhatsApp: Coming soon (User model does not have phone currently)
+                /*
                 if (user.phone) {
                     await sendWhatsAppMessage({
                         to: user.phone,
                         body: buildShippingNotificationMessage({
-                            customerName: user.name,
+                            customerName: userName,
                             orderNumber: order.orderNumber,
                             trackingNumber: tracking.trackingNumber,
                             trackingUrl: tracking.trackingUrl,
@@ -159,6 +164,7 @@ async function handleStatusNotification(
                         }),
                     });
                 }
+                */
 
                 // Email
                 await sendEmail({
@@ -166,7 +172,7 @@ async function handleStatusNotification(
                     subject: `🚚 Tu pedido #${order.orderNumber} va en camino`,
                     html: `
             <h1>¡Tu pedido ha sido enviado!</h1>
-            <p>Hola ${user.name},</p>
+            <p>Hola ${userName},</p>
             <p>Tu pedido <strong>#${order.orderNumber}</strong> está en camino.</p>
             <p><strong>Número de guía:</strong> ${tracking.trackingNumber}</p>
             ${tracking.trackingUrl ? `<p><a href="${tracking.trackingUrl}">Rastrea tu paquete aquí</a></p>` : ''}
@@ -179,15 +185,18 @@ async function handleStatusNotification(
         // Notificación: Pedido Entregado
         case 'DELIVERED':
             // WhatsApp
+            // WhatsApp: Coming soon
+            /*
             if (user.phone) {
                 await sendWhatsAppMessage({
                     to: user.phone,
                     body: buildDeliveryConfirmationMessage({
-                        customerName: user.name,
+                        customerName: userName,
                         orderNumber: order.orderNumber,
                     }),
                 });
             }
+            */
 
             // Email
             await sendEmail({
@@ -195,7 +204,7 @@ async function handleStatusNotification(
                 subject: `✅ Pedido #${order.orderNumber} entregado`,
                 html: `
           <h1>¡Tu pedido ha sido entregado!</h1>
-          <p>Hola ${user.name},</p>
+          <p>Hola ${userName},</p>
           <p>Tu pedido <strong>#${order.orderNumber}</strong> ha sido entregado exitosamente.</p>
           <p>¿Todo bien con tu compra? Nos encantaría conocer tu opinión.</p>
           <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/pedidos/${order.id}/review">Dejar una reseña</a></p>
@@ -210,7 +219,7 @@ async function handleStatusNotification(
                 subject: `❌ Pedido #${order.orderNumber} cancelado`,
                 html: `
           <h1>Pedido Cancelado</h1>
-          <p>Hola ${user.name},</p>
+          <p>Hola ${userName},</p>
           <p>Tu pedido <strong>#${order.orderNumber}</strong> ha sido cancelado.</p>
           <p>Si tienes preguntas, contáctanos respondiendo a este correo.</p>
         `,
