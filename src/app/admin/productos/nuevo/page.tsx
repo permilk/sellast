@@ -1,240 +1,192 @@
 'use client';
 
 // ============================================
-// ADMIN - NUEVO PRODUCTO
+// ADMIN - NUEVO PRODUCTO (FORMULARIO EMPRESARIAL)
 // ============================================
 
 import Link from 'next/link';
 import { useState } from 'react';
 
-const categorias = [
-    { id: 'bordados', nombre: 'Diseños de Bordado' },
-    { id: 'dtf', nombre: 'Transfers DTF' },
-    { id: 'vinil', nombre: 'Corte de Vinil' },
-    { id: 'combos', nombre: 'Paquetes y Combos' },
-];
-
 export default function NuevoProductoPage() {
-    const [producto, setProducto] = useState({
-        sku: '',
-        nombre: '',
-        descripcion: '',
-        precio: '',
-        precioComparar: '',
-        stock: '100',
-        categoria: '',
-        peso: '',
-        activo: true,
-        destacado: false,
-    });
-
-    const [imagenes, setImagenes] = useState<string[]>([]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // TODO: Enviar a API
-        alert('Producto guardado (demo)');
-    };
+    const [tieneVariantes, setTieneVariantes] = useState(false);
 
     return (
-        <div className="nuevo-producto">
+        <div className="new-product-page">
             <div className="page-header">
                 <div>
-                    <Link href="/admin/productos" className="back-link">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-                        Volver a Productos
-                    </Link>
+                    <Link href="/admin/productos" className="back-link">← Volver a Productos</Link>
                     <h1>Nuevo Producto</h1>
+                </div>
+                <div className="header-actions">
+                    <Link href="/admin/productos" className="btn-cancel">Cancelar</Link>
+                    <button className="btn-save">Crear producto</button>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="producto-form">
-                <div className="form-grid">
-                    {/* Columna Principal */}
-                    <div className="main-col">
-                        <div className="panel">
-                            <h3>Información Básica</h3>
-                            <div className="form-group">
-                                <label>Nombre del Producto *</label>
-                                <input
-                                    type="text"
-                                    value={producto.nombre}
-                                    onChange={e => setProducto({ ...producto, nombre: e.target.value })}
-                                    placeholder="Ej: Diseño de Rosa con Hojas"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Descripción</label>
-                                <textarea
-                                    rows={4}
-                                    value={producto.descripcion}
-                                    onChange={e => setProducto({ ...producto, descripcion: e.target.value })}
-                                    placeholder="Describe el producto, formatos incluidos, medidas, etc."
-                                />
-                            </div>
+            <div className="form-container">
+                {/* GENERAL INFO */}
+                <div className="form-section">
+                    <div className="form-row split-2-1">
+                        <div className="form-group">
+                            <label>Nombre *</label>
+                            <input type="text" placeholder="Ej. Agua Mineral 500ml" />
                         </div>
-
-                        <div className="panel">
-                            <h3>Imágenes</h3>
-                            <div className="upload-area">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                                    <circle cx="8.5" cy="8.5" r="1.5" />
-                                    <path d="M21 15l-5-5L5 21" />
-                                </svg>
-                                <p>Arrastra imágenes aquí o haz clic para subir</p>
-                                <span>PNG, JPG hasta 5MB</span>
-                                <input type="file" accept="image/*" multiple hidden />
-                            </div>
-                            {imagenes.length > 0 && (
-                                <div className="imagenes-preview">
-                                    {imagenes.map((img, i) => (
-                                        <div key={i} className="imagen-thumb">
-                                            <img src={img} alt="" />
-                                            <button type="button" onClick={() => setImagenes(imagenes.filter((_, idx) => idx !== i))}>×</button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="panel">
-                            <h3>Precios</h3>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Precio *</label>
-                                    <div className="input-prefix">
-                                        <span>$</span>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={producto.precio}
-                                            onChange={e => setProducto({ ...producto, precio: e.target.value })}
-                                            placeholder="0.00"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-group">
-                                    <label>Precio Comparar (tachado)</label>
-                                    <div className="input-prefix">
-                                        <span>$</span>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={producto.precioComparar}
-                                            onChange={e => setProducto({ ...producto, precioComparar: e.target.value })}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                </div>
+                        <div className="form-group">
+                            <label>Código de Barras</label>
+                            <div className="input-with-action">
+                                <input type="text" placeholder="Escanea o escribe..." />
+                                <button className="btn-icon-inside" title="Escanear">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Columna Lateral */}
-                    <div className="side-col">
-                        <div className="panel">
-                            <h3>Organización</h3>
-                            <div className="form-group">
-                                <label>SKU *</label>
-                                <input
-                                    type="text"
-                                    value={producto.sku}
-                                    onChange={e => setProducto({ ...producto, sku: e.target.value.toUpperCase() })}
-                                    placeholder="BOR-001"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Categoría *</label>
-                                <select
-                                    value={producto.categoria}
-                                    onChange={e => setProducto({ ...producto, categoria: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Seleccionar...</option>
-                                    {categorias.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                                    ))}
-                                </select>
+                    <div className="form-group">
+                        <label>Categoría</label>
+                        <select>
+                            <option>Seleccionar categoría...</option>
+                            <option>Bebidas</option>
+                            <option>Limpieza</option>
+                            <option>Alimentos</option>
+                            <option>Indumentaria</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Descripción</label>
+                        <textarea placeholder="Detalles del producto..." rows={3}></textarea>
+                    </div>
+                </div>
+
+                {/* PRICING & STOCK */}
+                <div className="form-section">
+                    <div className="form-row split-2">
+                        <div className="form-group">
+                            <label>Precio de Compra * (Costo)</label>
+                            <div className="money-input">
+                                <span>$</span>
+                                <input type="number" placeholder="0.00" />
                             </div>
                         </div>
-
-                        <div className="panel">
-                            <h3>Inventario</h3>
-                            <div className="form-group">
-                                <label>Stock Disponible</label>
-                                <input
-                                    type="number"
-                                    value={producto.stock}
-                                    onChange={e => setProducto({ ...producto, stock: e.target.value })}
-                                />
+                        <div className="form-group">
+                            <label>Precio de Venta *</label>
+                            <div className="money-input">
+                                <span>$</span>
+                                <input type="number" placeholder="0.00" />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="panel">
-                            <h3>Visibilidad</h3>
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={producto.activo}
-                                    onChange={e => setProducto({ ...producto, activo: e.target.checked })}
-                                />
-                                <span>Producto activo</span>
-                            </label>
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={producto.destacado}
-                                    onChange={e => setProducto({ ...producto, destacado: e.target.checked })}
-                                />
-                                <span>Mostrar en destacados</span>
-                            </label>
+                    <div className="form-row split-2">
+                        <div className="form-group">
+                            <label>Stock Actual</label>
+                            <input type="number" defaultValue="0" />
+                        </div>
+                        <div className="form-group">
+                            <label>Stock Mínimo</label>
+                            <input type="number" defaultValue="5" />
                         </div>
                     </div>
                 </div>
 
-                <div className="form-actions">
-                    <Link href="/admin/productos" className="btn-cancel">Cancelar</Link>
-                    <button type="submit" className="btn-primary">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
-                        Guardar Producto
-                    </button>
+                {/* ATTRIBUTES */}
+                <div className="form-section">
+                    <h3 className="section-title">Características (Opcional)</h3>
+                    <div className="form-row split-2">
+                        <div className="form-group">
+                            <label>Marca</label>
+                            <select><option>Seleccionar...</option><option>Coca Cola</option><option>Nike</option></select>
+                        </div>
+                        <div className="form-group">
+                            <label>Género</label>
+                            <select><option>Unisex</option><option>Hombre</option><option>Mujer</option></select>
+                        </div>
+                    </div>
                 </div>
-            </form>
+
+                {/* VARIANTS TOGGLE */}
+                <div className="form-section variants-section">
+                    <div className="toggle-row">
+                        <div className="toggle-switch">
+                            <input type="checkbox" id="variants" checked={tieneVariantes} onChange={e => setTieneVariantes(e.target.checked)} />
+                            <label htmlFor="variants"></label>
+                        </div>
+                        <div className="toggle-label">
+                            <span className="toggle-title">Producto con Variantes</span>
+                            <span className="toggle-desc">Habilita tallas, colores u otras combinaciones</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <style jsx>{`
-                .nuevo-producto { max-width: 1200px; }
-                .page-header { margin-bottom: 2rem; }
-                .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #64748b; text-decoration: none; font-size: 0.875rem; margin-bottom: 0.5rem; }
-                .back-link:hover { color: #e94560; }
-                .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
-                .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-                .panel { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-                .panel h3 { font-size: 0.95rem; font-weight: 600; color: #1a1a2e; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+                .new-product-page { max-width: 900px; margin: 0 auto; }
+                
+                .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+                .back-link { font-size: 0.85rem; color: #64748b; text-decoration: none; margin-bottom: 0.5rem; display: block; }
+                .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; }
+                
+                .header-actions { display: flex; gap: 1rem; }
+                .btn-cancel { padding: 0.75rem 1.5rem; border: 1px solid #e2e8f0; background: #fff; color: #64748b; border-radius: 8px; font-weight: 600; text-decoration: none; }
+                .btn-save { padding: 0.75rem 1.5rem; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
+                .btn-save:hover { background: #1d4ed8; }
+
+                .form-container { display: flex; flex-direction: column; gap: 1.5rem; }
+                
+                .form-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+                .section-title { font-size: 0.9rem; color: #64748b; margin-bottom: 1rem; font-weight: 500; }
+
                 .form-group { margin-bottom: 1.25rem; }
                 .form-group:last-child { margin-bottom: 0; }
-                .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
-                .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s; }
-                .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #e94560; }
-                .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                .input-prefix { position: relative; }
-                .input-prefix span { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #64748b; }
-                .input-prefix input { padding-left: 1.75rem; }
-                .upload-area { border: 2px dashed #e2e8f0; border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; }
-                .upload-area:hover { border-color: #e94560; background: #fef2f2; }
-                .upload-area p { margin: 0.75rem 0 0.25rem; color: #374151; font-weight: 500; }
-                .upload-area span { font-size: 0.8rem; color: #94a3b8; }
-                .checkbox-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0; }
-                .checkbox-label input { width: 18px; height: 18px; accent-color: #e94560; }
-                .checkbox-label span { font-size: 0.9rem; color: #374151; }
-                .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; }
-                .btn-cancel { padding: 0.875rem 1.5rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none; }
-                .btn-primary { display: flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.75rem; background: linear-gradient(135deg, #e94560, #ff6b6b); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3); }
-                @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+                .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: #334155; }
+                
+                .form-group input, .form-group select, .form-group textarea {
+                    width: 100%;
+                    padding: 0.75rem 1rem;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    font-size: 0.95rem;
+                    color: #1e293b;
+                    outline: none;
+                    transition: all 0.2s;
+                    background: #fff;
+                }
+                .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+                }
+
+                .form-row { display: flex; gap: 1.5rem; }
+                .split-2 { grid-template-columns: 1fr 1fr; display: grid; }
+                .split-2-1 { display: grid; grid-template-columns: 2fr 1fr; }
+
+                .input-with-action { position: relative; display: flex; }
+                .input-with-action input { padding-right: 3rem; }
+                .btn-icon-inside { position: absolute; right: 0; top: 0; bottom: 0; width: 3rem; background: none; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+                .btn-icon-inside:hover { color: #2563eb; }
+
+                .money-input { position: relative; }
+                .money-input span { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b; font-weight: 600; }
+                .money-input input { padding-left: 2rem; }
+
+                .variants-section { background: #f8fafc; border: 1px solid #e2e8f0; }
+                .toggle-row { display: flex; align-items: flex-start; gap: 1rem; }
+                
+                .toggle-switch { position: relative; width: 44px; height: 24px; }
+                .toggle-switch input { opacity: 0; width: 0; height: 0; }
+                .toggle-switch label { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+                .toggle-switch label:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+                .toggle-switch input:checked + label { background-color: #2563eb; }
+                .toggle-switch input:checked + label:before { transform: translateX(20px); }
+
+                .toggle-label { display: flex; flex-direction: column; }
+                .toggle-title { font-weight: 600; color: #1e293b; font-size: 0.95rem; }
+                .toggle-desc { font-size: 0.85rem; color: #64748b; }
+
+                @media (max-width: 768px) {
+                    .form-row, .split-2, .split-2-1 { grid-template-columns: 1fr; }
+                }
             `}</style>
         </div>
     );
