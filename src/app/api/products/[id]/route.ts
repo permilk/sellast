@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             where: { id },
             include: {
                 category: true,
-                images: { orderBy: { sortOrder: 'asc' } },
+                images: true,
                 variants: true,
             },
         });
