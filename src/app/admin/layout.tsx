@@ -21,7 +21,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <div className="admin-layout">
             <aside className="admin-sidebar">
-                <div className="admin-logo"><Link href="/admin">Sell<span>ast</span></Link><span className="admin-badge">Admin</span></div>
+                <div className="admin-logo">
+                    <Link href="/admin">Sell<span>ast</span></Link>
+                    <span className="admin-badge">Admin</span>
+                </div>
                 <nav className="admin-nav">
                     {navItems.map((item) => (
                         <Link key={item.href} href={item.href} className={`admin-nav-item ${pathname === item.href ? 'active' : ''}`}>
@@ -59,9 +62,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <style jsx global>{`
                 .admin-layout{display:flex;min-height:100vh;background:#f1f5f9}
                 .admin-sidebar{width:260px;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
-                .admin-logo{padding:1.5rem;font-size:1.5rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:0.75rem}
-                .admin-logo a{color:#fff;text-decoration:none}
-                .admin-logo span{color:#e94560}
+                
+                .admin-logo{padding:1.5rem;font-size:1.5rem;font-weight:800;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:0.5rem;letter-spacing:-0.5px}
+                .admin-logo a{color:#ffffff !important;text-decoration:none}
+                .admin-logo span{color:#e94560 !important}
+                
                 .admin-badge{font-size:0.65rem;background:rgba(233,69,96,0.2);color:#e94560;padding:0.25rem 0.5rem;border-radius:4px;text-transform:uppercase;letter-spacing:1px}
                 .admin-nav{flex:1;padding:1rem 0;overflow-y:auto}
                 .admin-nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.875rem 1.5rem;color:rgba(255,255,255,0.7);text-decoration:none;transition:all 0.2s;border-left:3px solid transparent}

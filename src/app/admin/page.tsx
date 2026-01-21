@@ -1,361 +1,143 @@
 'use client';
 
 // ============================================
-// ADMIN DASHBOARD - PÁGINA PRINCIPAL
+// ADMIN - DASHBOARD PRINCIPAL
 // ============================================
 
 import Link from 'next/link';
 
-// Datos de ejemplo - en producción vendrían de la BD
-const stats = {
-    ventasHoy: 12450,
-    pedidosPendientes: 8,
-    productosStockBajo: 5,
-    clientesNuevos: 12,
-};
-
-const ultimosPedidos = [
-    { id: 'ORD-2026-00045', cliente: 'María García', total: 2450, status: 'CONFIRMED', fecha: '2026-01-20' },
-    { id: 'ORD-2026-00044', cliente: 'Carlos López', total: 1890, status: 'PROCESSING', fecha: '2026-01-20' },
-    { id: 'ORD-2026-00043', cliente: 'Ana Martínez', total: 3200, status: 'SHIPPED', fecha: '2026-01-19' },
-    { id: 'ORD-2026-00042', cliente: 'Pedro Sánchez', total: 950, status: 'DELIVERED', fecha: '2026-01-19' },
-    { id: 'ORD-2026-00041', cliente: 'Laura Díaz', total: 1650, status: 'PENDING', fecha: '2026-01-19' },
-];
-
-const statusLabels: Record<string, { label: string; color: string }> = {
-    PENDING: { label: 'Pendiente', color: '#f59e0b' },
-    CONFIRMED: { label: 'Confirmado', color: '#3b82f6' },
-    PROCESSING: { label: 'Preparando', color: '#8b5cf6' },
-    SHIPPED: { label: 'Enviado', color: '#06b6d4' },
-    DELIVERED: { label: 'Entregado', color: '#10b981' },
-    CANCELLED: { label: 'Cancelado', color: '#ef4444' },
-};
-
-function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('es-MX', {
-        style: 'currency',
-        currency: 'MXN',
-    }).format(amount);
-}
-
 export default function AdminDashboard() {
     return (
-        <div className="dashboard">
-            <div className="dashboard-header">
-                <h1>Dashboard</h1>
-                <p>Bienvenido al panel de administración de Sellast</p>
+        <div className="admin-dashboard">
+            <div className="page-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p className="welcome-text">Bienvenido de nuevo, Admin 👋</p>
+                </div>
+                <div className="date-badge">
+                    {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
             </div>
 
             {/* KPIs */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: '#dcfce7' }}>💰</div>
-                    <div className="stat-content">
-                        <span className="stat-value">{formatCurrency(stats.ventasHoy)}</span>
-                        <span className="stat-label">Ventas Hoy</span>
+            <div className="kpi-grid">
+                <div className="kpi-card">
+                    <div className="kpi-icon sales">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                    </div>
+                    <div className="kpi-info">
+                        <h3>Ventas Totales</h3>
+                        <p className="kpi-value">$24,500</p>
+                        <span className="kpi-trend positive">+15% vs mes ant.</span>
                     </div>
                 </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: '#fef3c7' }}>📦</div>
-                    <div className="stat-content">
-                        <span className="stat-value">{stats.pedidosPendientes}</span>
-                        <span className="stat-label">Pedidos Pendientes</span>
+                <div className="kpi-card">
+                    <div className="kpi-icon orders">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><path d="M3 6h18M16 10a4 4 0 0 1-8 0" /></svg>
+                    </div>
+                    <div className="kpi-info">
+                        <h3>Pedidos Nuevos</h3>
+                        <p className="kpi-value">12</p>
+                        <span className="kpi-sub">3 pendientes de envío</span>
                     </div>
                 </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: '#fee2e2' }}>⚠️</div>
-                    <div className="stat-content">
-                        <span className="stat-value">{stats.productosStockBajo}</span>
-                        <span className="stat-label">Stock Bajo</span>
+                <div className="kpi-card">
+                    <div className="kpi-icon customers">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                     </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon" style={{ background: '#dbeafe' }}>👥</div>
-                    <div className="stat-content">
-                        <span className="stat-value">{stats.clientesNuevos}</span>
-                        <span className="stat-label">Clientes Nuevos</span>
+                    <div className="kpi-info">
+                        <h3>Clientes</h3>
+                        <p className="kpi-value">145</p>
+                        <span className="kpi-trend positive">+8 nuevos esta semana</span>
                     </div>
                 </div>
             </div>
 
-            {/* Últimos Pedidos */}
-            <div className="dashboard-section">
-                <div className="section-header">
-                    <h2>Últimos Pedidos</h2>
-                    <Link href="/admin/pedidos" className="view-all-link">
-                        Ver todos →
-                    </Link>
-                </div>
-
-                <div className="orders-table-wrapper">
-                    <table className="orders-table">
+            {/* Accesos Rápidos & Actividad */}
+            <div className="dashboard-grid">
+                <div className="panel recent-orders">
+                    <div className="panel-header">
+                        <h3>📦 Últimos Pedidos</h3>
+                        <Link href="/admin/pedidos" className="view-all">Ver todos</Link>
+                    </div>
+                    <table className="dashboard-table">
                         <thead>
-                            <tr>
-                                <th>Pedido</th>
-                                <th>Cliente</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Estado</th></tr>
                         </thead>
                         <tbody>
-                            {ultimosPedidos.map((pedido) => (
-                                <tr key={pedido.id}>
-                                    <td className="order-id">{pedido.id}</td>
-                                    <td>{pedido.cliente}</td>
-                                    <td className="order-total">{formatCurrency(pedido.total)}</td>
-                                    <td>
-                                        <span
-                                            className="status-badge"
-                                            style={{
-                                                background: `${statusLabels[pedido.status].color}20`,
-                                                color: statusLabels[pedido.status].color
-                                            }}
-                                        >
-                                            {statusLabels[pedido.status].label}
-                                        </span>
-                                    </td>
-                                    <td className="order-date">{pedido.fecha}</td>
-                                    <td>
-                                        <Link
-                                            href={`/admin/pedidos/${pedido.id}`}
-                                            className="action-btn"
-                                        >
-                                            Ver
-                                        </Link>
-                                    </td>
-                                </tr>
-                            ))}
+                            <tr>
+                                <td><span className="order-id">#ORD-045</span></td>
+                                <td>María García</td>
+                                <td className="font-mono">$178.00</td>
+                                <td><span className="badge success">Pagado</span></td>
+                            </tr>
+                            <tr>
+                                <td><span className="order-id">#ORD-044</span></td>
+                                <td>Juan Pérez</td>
+                                <td className="font-mono">$65.00</td>
+                                <td><span className="badge warning">Pendiente</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            {/* Quick Actions */}
-            <div className="dashboard-section">
-                <h2>Acciones Rápidas</h2>
-                <div className="quick-actions">
-                    <Link href="/admin/productos/nuevo" className="quick-action-card">
-                        <span className="quick-action-icon">➕</span>
-                        <span className="quick-action-label">Nuevo Producto</span>
-                    </Link>
-                    <Link href="/admin/pedidos?status=PENDING" className="quick-action-card">
-                        <span className="quick-action-icon">📋</span>
-                        <span className="quick-action-label">Pedidos por Confirmar</span>
-                    </Link>
-                    <Link href="/admin/inventario" className="quick-action-card">
-                        <span className="quick-action-icon">📦</span>
-                        <span className="quick-action-label">Ajustar Inventario</span>
-                    </Link>
-                    <Link href="/admin/reportes" className="quick-action-card">
-                        <span className="quick-action-icon">📊</span>
-                        <span className="quick-action-label">Ver Reportes</span>
-                    </Link>
+                <div className="panel quick-actions">
+                    <h3>⚡ Acciones Rápidas</h3>
+                    <div className="action-buttons">
+                        <Link href="/admin/productos/nuevo" className="quick-btn">
+                            <span className="qb-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+                            </span>
+                            <span>Nuevo Producto</span>
+                        </Link>
+                        <Link href="/admin/pedidos" className="quick-btn">
+                            <span className="qb-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13" rx="2" ry="2" /><line x1="16" y1="8" x2="20" y2="8" /><line x1="16" y1="16" x2="23" y2="16" /><line x1="16" y1="12" x2="23" y2="12" /></svg>
+                            </span>
+                            <span>Gestionar Envíos</span>
+                        </Link>
+                    </div>
                 </div>
             </div>
 
             <style jsx>{`
-                .dashboard {
-                    max-width: 1400px;
-                }
+                .admin-dashboard { max-width: 1400px; }
+                .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+                .page-header h1 { font-size: 2rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
+                .welcome-text { color: #64748b; margin-top: 0.5rem; }
+                .date-badge { background: #fff; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; color: #64748b; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; text-transform: capitalize; }
+
+                .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+                .kpi-card { background: #fff; padding: 1.5rem; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 1.25rem; border: 1px solid #f1f5f9; transition: transform 0.2s; }
+                .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+                .kpi-icon { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+                .kpi-icon.sales { background: #ecfdf5; color: #10b981; }
+                .kpi-icon.orders { background: #eff6ff; color: #3b82f6; }
+                .kpi-icon.customers { background: #fef2f2; color: #e94560; }
+                .kpi-value { font-size: 1.75rem; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+                .kpi-trend { font-size: 0.75rem; font-weight: 600; }
+                .kpi-trend.positive { color: #10b981; }
+
+                .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+                .panel { background: #fff; border-radius: 16px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+                .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+                .panel h3 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
+                .view-all { font-size: 0.85rem; color: #e94560; text-decoration: none; font-weight: 500; }
                 
-                .dashboard-header {
-                    margin-bottom: 2rem;
-                }
-                
-                .dashboard-header h1 {
-                    font-size: 1.75rem;
-                    font-weight: 700;
-                    color: #1a1a2e;
-                    margin-bottom: 0.25rem;
-                }
-                
-                .dashboard-header p {
-                    color: #64748b;
-                }
-                
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 1.5rem;
-                    margin-bottom: 2rem;
-                }
-                
-                .stat-card {
-                    background: #fff;
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                }
-                
-                .stat-icon {
-                    width: 56px;
-                    height: 56px;
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.5rem;
-                }
-                
-                .stat-content {
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .stat-value {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #1a1a2e;
-                }
-                
-                .stat-label {
-                    font-size: 0.875rem;
-                    color: #64748b;
-                }
-                
-                .dashboard-section {
-                    background: #fff;
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                    margin-bottom: 2rem;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                }
-                
-                .section-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 1rem;
-                }
-                
-                .section-header h2 {
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #1a1a2e;
-                }
-                
-                .view-all-link {
-                    color: #e94560;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    text-decoration: none;
-                }
-                
-                .view-all-link:hover {
-                    text-decoration: underline;
-                }
-                
-                .orders-table-wrapper {
-                    overflow-x: auto;
-                }
-                
-                .orders-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                
-                .orders-table th,
-                .orders-table td {
-                    padding: 1rem;
-                    text-align: left;
-                    border-bottom: 1px solid #e2e8f0;
-                }
-                
-                .orders-table th {
-                    font-size: 0.75rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    color: #64748b;
-                    font-weight: 600;
-                }
-                
-                .order-id {
-                    font-family: monospace;
-                    font-weight: 600;
-                    color: #1a1a2e;
-                }
-                
-                .order-total {
-                    font-family: monospace;
-                    font-weight: 600;
-                }
-                
-                .order-date {
-                    color: #64748b;
-                }
-                
-                .status-badge {
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 20px;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                }
-                
-                .action-btn {
-                    padding: 0.5rem 1rem;
-                    background: #f1f5f9;
-                    color: #1a1a2e;
-                    border-radius: 6px;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                }
-                
-                .action-btn:hover {
-                    background: #e94560;
-                    color: #fff;
-                }
-                
-                .quick-actions {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 1rem;
-                }
-                
-                .quick-action-card {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.75rem;
-                    padding: 1.5rem;
-                    background: #f8fafc;
-                    border-radius: 12px;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                    border: 2px solid transparent;
-                }
-                
-                .quick-action-card:hover {
-                    background: #fff;
-                    border-color: #e94560;
-                }
-                
-                .quick-action-icon {
-                    font-size: 2rem;
-                }
-                
-                .quick-action-label {
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    color: #1a1a2e;
-                    text-align: center;
-                }
-                
-                @media (max-width: 1024px) {
-                    .stats-grid,
-                    .quick-actions {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-                }
+                .dashboard-table { width: 100%; border-collapse: collapse; }
+                .dashboard-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; padding-bottom: 0.75rem; border-bottom: 1px solid #f1f5f9; }
+                .dashboard-table td { padding: 1rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #334155; }
+                .order-id { font-family: monospace; font-weight: 600; background: #f8fafc; padding: 0.2rem 0.5rem; border-radius: 4px; }
+                .font-mono { font-family: monospace; font-weight: 600; }
+                .badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+                .badge.success { background: #ecfdf5; color: #10b981; }
+                .badge.warning { background: #fffbeb; color: #f59e0b; }
+
+                .action-buttons { display: flex; flex-direction: column; gap: 1rem; }
+                .quick-btn { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: #1a1a2e; font-weight: 500; transition: all 0.2s; }
+                .quick-btn:hover { background: #fff; border-color: #e94560; transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                .qb-icon { color: #64748b; }
+                .quick-btn:hover .qb-icon { color: #e94560; }
             `}</style>
         </div>
     );

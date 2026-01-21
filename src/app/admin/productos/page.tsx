@@ -1,465 +1,159 @@
-// ============================================
-// ADMIN - GESTIÓN DE PRODUCTOS
-// ============================================
-
 'use client';
+
+// ============================================
+// ADMIN - PRODUCTOS
+// ============================================
 
 import Link from 'next/link';
 import { useState } from 'react';
 
-// Datos de ejemplo
-const productos = [
-    { id: '1', sku: 'PROD-001', nombre: 'Bolso Premium Leather', categoria: 'Accesorios', precio: 1299, stock: 15, activo: true, imagen: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=100&h=100&fit=crop' },
-    { id: '2', sku: 'PROD-002', nombre: 'Reloj Clásico Dorado', categoria: 'Joyería', precio: 2499, stock: 8, activo: true, imagen: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=100&h=100&fit=crop' },
-    { id: '3', sku: 'PROD-003', nombre: 'Zapatillas Urban Style', categoria: 'Calzado', precio: 1899, stock: 3, activo: true, imagen: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop' },
-    { id: '4', sku: 'PROD-004', nombre: 'Lentes de Sol Aviator', categoria: 'Accesorios', precio: 799, stock: 25, activo: true, imagen: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=100&h=100&fit=crop' },
-    { id: '5', sku: 'PROD-005', nombre: 'Cartera Ejecutiva', categoria: 'Accesorios', precio: 650, stock: 0, activo: false, imagen: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=100&h=100&fit=crop' },
+// Datos actualizados: Bordados, DTF, Vinil
+const productosIniciales = [
+    { id: '1', sku: 'BOR-001', nombre: 'Rosa Elegante - Diseño de Bordado', categoria: 'Bordados', precio: 89, stock: 'Digital', status: 'activo', imagen: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop' },
+    { id: '2', sku: 'DTF-001', nombre: 'Mariposa Monarca - Transfer DTF', categoria: 'DTF', precio: 65, stock: 150, status: 'activo', imagen: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=400&h=400&fit=crop' },
+    { id: '3', sku: 'VIN-001', nombre: 'Lettering Script - Corte Vinil', categoria: 'Vinil', precio: 45, stock: 50, status: 'activo', imagen: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&h=400&fit=crop' },
+    { id: '4', sku: 'BOR-002', nombre: 'Mandala Floral - Diseño de Bordado', categoria: 'Bordados', precio: 149, stock: 'Digital', status: 'activo', imagen: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=400&fit=crop' },
+    { id: '5', sku: 'DTF-002', nombre: 'Tigre Realista - Transfer DTF', categoria: 'DTF', precio: 120, stock: 80, status: 'inactivo', imagen: 'https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=400&h=400&fit=crop' },
 ];
 
 function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('es-MX', {
-        style: 'currency',
-        currency: 'MXN',
-    }).format(amount);
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
 }
 
-function getStockStatus(stock: number) {
-    if (stock === 0) return { label: 'Sin stock', color: '#ef4444' };
-    if (stock <= 5) return { label: 'Stock bajo', color: '#f59e0b' };
-    return { label: 'Disponible', color: '#10b981' };
-}
-
-export default function ProductosPage() {
+export default function AdminProductosPage() {
     const [busqueda, setBusqueda] = useState('');
-    const [showModal, setShowModal] = useState(false);
+    const [productos, setProductos] = useState(productosIniciales);
 
     const productosFiltrados = productos.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        p.sku.toLowerCase().includes(busqueda.toLowerCase()) ||
-        p.categoria.toLowerCase().includes(busqueda.toLowerCase())
+        p.sku.toLowerCase().includes(busqueda.toLowerCase())
     );
 
+    const handleDelete = (id: string) => {
+        if (confirm('¿Estás seguro de eliminar este producto?')) {
+            setProductos(productos.filter(p => p.id !== id));
+        }
+    };
+
     return (
-        <div className="productos-page">
+        <div className="admin-products">
             <div className="page-header">
                 <div>
                     <h1>Productos</h1>
-                    <p>Gestiona el catálogo de productos</p>
+                    <p>Gestiona tu catálogo de diseños y materiales</p>
                 </div>
-                <button className="btn-primary" onClick={() => setShowModal(true)}>
-                    ➕ Nuevo Producto
-                </button>
+                <Link href="/admin/productos/nuevo" className="btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
+                    Nuevo Producto
+                </Link>
             </div>
 
-            {/* Filtros */}
             <div className="filters-bar">
-                <input
-                    type="search"
-                    placeholder="Buscar por nombre, SKU o categoría..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="search-input"
-                />
-            </div>
-
-            {/* Grid de Productos */}
-            <div className="products-grid">
-                {productosFiltrados.map((producto) => {
-                    const stockStatus = getStockStatus(producto.stock);
-                    return (
-                        <div key={producto.id} className="product-card">
-                            <div className="product-image">
-                                <img src={producto.imagen} alt={producto.nombre} />
-                                {!producto.activo && (
-                                    <span className="inactive-badge">Inactivo</span>
-                                )}
-                            </div>
-                            <div className="product-info">
-                                <span className="product-sku">{producto.sku}</span>
-                                <h3 className="product-name">{producto.nombre}</h3>
-                                <span className="product-category">{producto.categoria}</span>
-                                <div className="product-meta">
-                                    <span className="product-price">{formatCurrency(producto.precio)}</span>
-                                    <span
-                                        className="product-stock"
-                                        style={{ color: stockStatus.color }}
-                                    >
-                                        {producto.stock} uds • {stockStatus.label}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="product-actions">
-                                <Link href={`/admin/productos/${producto.id}`} className="action-btn">
-                                    ✏️ Editar
-                                </Link>
-                                <button className="action-btn danger">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Modal Nuevo Producto */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>Nuevo Producto</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-                        </div>
-                        <form className="modal-body">
-                            <div className="form-group">
-                                <label>SKU</label>
-                                <input type="text" placeholder="PROD-XXX" />
-                            </div>
-                            <div className="form-group">
-                                <label>Nombre del Producto</label>
-                                <input type="text" placeholder="Ej: Bolso Premium Leather" />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Precio</label>
-                                    <input type="number" placeholder="0.00" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Stock Inicial</label>
-                                    <input type="number" placeholder="0" />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Categoría</label>
-                                <select>
-                                    <option value="">Seleccionar categoría</option>
-                                    <option value="accesorios">Accesorios</option>
-                                    <option value="calzado">Calzado</option>
-                                    <option value="joyeria">Joyería</option>
-                                    <option value="ropa">Ropa</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Descripción</label>
-                                <textarea rows={3} placeholder="Descripción del producto..." />
-                            </div>
-                            <div className="form-group">
-                                <label>Imágenes</label>
-                                <div className="upload-area">
-                                    <span>📷</span>
-                                    <p>Arrastra imágenes o haz clic para subir</p>
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Guardar Producto
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                <div className="search-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                    <input
+                        type="search"
+                        placeholder="Buscar por nombre, SKU o categoría..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                    />
                 </div>
-            )}
+                <div className="filter-actions">
+                    <button className="btn-filter">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" /></svg>
+                        Filtros
+                    </button>
+                    <button className="btn-export">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+
+            <div className="products-grid">
+                {productosFiltrados.map(producto => (
+                    <div key={producto.id} className="product-card">
+                        <div className="product-image">
+                            <img src={producto.imagen} alt={producto.nombre} />
+                            <div className={`status-indicator ${producto.status}`}>
+                                {producto.status === 'activo' ? 'Activo' : 'Inactivo'}
+                            </div>
+                        </div>
+                        <div className="product-content">
+                            <div className="product-header">
+                                <span className="product-sku">{producto.sku}</span>
+                                <div className="product-actions">
+                                    <button className="action-btn edit" title="Editar">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
+                                    </button>
+                                    <button className="action-btn delete" onClick={() => handleDelete(producto.id)} title="Eliminar">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <h3 className="product-title">{producto.nombre}</h3>
+                            <span className="product-category">{producto.categoria}</span>
+                            <div className="product-footer">
+                                <span className="product-price">{formatCurrency(producto.precio)}</span>
+                                <span className="product-stock">
+                                    {producto.stock === 'Digital' ?
+                                        <span className="stock-digital">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                                            Digital
+                                        </span>
+                                        :
+                                        `${producto.stock} uds.`
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
             <style jsx>{`
-                .productos-page {
-                    max-width: 1400px;
-                }
+                .admin-products { max-width: 1400px; }
+                .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+                .page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.25rem; }
+                .page-header p { color: #64748b; }
                 
-                .page-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 2rem;
-                }
+                .btn-primary { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #e94560, #ff6b6b); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(233, 69, 96, 0.2); transition: all 0.2s; }
+                .btn-primary:hover { transform: translateY(-2px); }
                 
-                .page-header h1 {
-                    font-size: 1.75rem;
-                    font-weight: 700;
-                    color: #1a1a2e;
-                    margin-bottom: 0.25rem;
-                }
+                .filters-bar { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; background: #fff; padding: 1rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+                .search-box { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0; flex: 1; max-width: 400px; }
+                .search-box input { border: none; background: none; width: 100%; outline: none; color: #1a1a2e; }
+                .filter-actions { display: flex; gap: 0.75rem; }
+                .btn-filter, .btn-export { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; color: #64748b; cursor: pointer; transition: all 0.2s; }
+                .btn-filter:hover, .btn-export:hover { border-color: #94a3b8; color: #1a1a2e; }
+
+                .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+                .product-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid #f1f5f9; }
+                .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: #e2e8f0; }
                 
-                .page-header p {
-                    color: #64748b;
-                }
+                .product-image { height: 200px; position: relative; overflow: hidden; background: #f1f5f9; }
+                .product-image img { width: 100%; height: 100%; object-fit: cover; }
+                .status-indicator { position: absolute; top: 1rem; left: 1rem; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: rgba(255,255,255,0.9); }
+                .status-indicator.activo { color: #10b981; }
+                .status-indicator.inactivo { color: #94a3b8; }
+
+                .product-content { padding: 1.25rem; }
+                .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+                .product-sku { font-size: 0.75rem; color: #94a3b8; font-family: monospace; background: #f8fafc; padding: 0.15rem 0.5rem; border-radius: 4px; }
                 
-                .btn-primary {
-                    padding: 0.75rem 1.5rem;
-                    background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
-                    color: #fff;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
+                .product-actions { display: flex; gap: 0.5rem; opacity: 0; transition: opacity 0.2s; }
+                .product-card:hover .product-actions { opacity: 1; }
+                .action-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 6px; cursor: pointer; background: #f1f5f9; color: #64748b; transition: all 0.2s; }
+                .action-btn.edit:hover { background: #3b82f6; color: #fff; }
+                .action-btn.delete:hover { background: #ef4444; color: #fff; }
+
+                .product-title { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .product-category { font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 1rem; }
                 
-                .btn-primary:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
-                }
-                
-                .filters-bar {
-                    margin-bottom: 1.5rem;
-                }
-                
-                .search-input {
-                    width: 100%;
-                    max-width: 400px;
-                    padding: 0.75rem 1rem;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    font-size: 0.95rem;
-                }
-                
-                .search-input:focus {
-                    outline: none;
-                    border-color: #e94560;
-                }
-                
-                .products-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                    gap: 1.5rem;
-                }
-                
-                .product-card {
-                    background: #fff;
-                    border-radius: 12px;
-                    overflow: hidden;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    transition: all 0.2s;
-                }
-                
-                .product-card:hover {
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                }
-                
-                .product-image {
-                    position: relative;
-                    height: 200px;
-                    background: #f8fafc;
-                }
-                
-                .product-image img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-                
-                .inactive-badge {
-                    position: absolute;
-                    top: 0.75rem;
-                    right: 0.75rem;
-                    padding: 0.25rem 0.75rem;
-                    background: #ef4444;
-                    color: #fff;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    border-radius: 4px;
-                }
-                
-                .product-info {
-                    padding: 1.25rem;
-                }
-                
-                .product-sku {
-                    font-size: 0.75rem;
-                    font-family: monospace;
-                    color: #64748b;
-                }
-                
-                .product-name {
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #1a1a2e;
-                    margin: 0.25rem 0;
-                }
-                
-                .product-category {
-                    font-size: 0.85rem;
-                    color: #64748b;
-                }
-                
-                .product-meta {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-top: 1rem;
-                    padding-top: 1rem;
-                    border-top: 1px solid #e2e8f0;
-                }
-                
-                .product-price {
-                    font-size: 1.25rem;
-                    font-weight: 700;
-                    font-family: monospace;
-                    color: #1a1a2e;
-                }
-                
-                .product-stock {
-                    font-size: 0.8rem;
-                    font-weight: 500;
-                }
-                
-                .product-actions {
-                    display: flex;
-                    gap: 0.5rem;
-                    padding: 0 1.25rem 1.25rem;
-                }
-                
-                .action-btn {
-                    flex: 1;
-                    padding: 0.6rem;
-                    background: #f1f5f9;
-                    border: none;
-                    border-radius: 6px;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    text-decoration: none;
-                    text-align: center;
-                    transition: all 0.2s;
-                }
-                
-                .action-btn:hover {
-                    background: #e2e8f0;
-                }
-                
-                .action-btn.danger:hover {
-                    background: #fee2e2;
-                    color: #ef4444;
-                }
-                
-                /* Modal Styles */
-                .modal-overlay {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0,0,0,0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 1000;
-                }
-                
-                .modal {
-                    background: #fff;
-                    border-radius: 16px;
-                    width: 100%;
-                    max-width: 500px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                }
-                
-                .modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 1.5rem;
-                    border-bottom: 1px solid #e2e8f0;
-                }
-                
-                .modal-header h2 {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: #1a1a2e;
-                }
-                
-                .modal-close {
-                    width: 32px;
-                    height: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: #f1f5f9;
-                    border: none;
-                    border-radius: 50%;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                }
-                
-                .modal-body {
-                    padding: 1.5rem;
-                }
-                
-                .form-group {
-                    margin-bottom: 1.25rem;
-                }
-                
-                .form-group label {
-                    display: block;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    color: #1a1a2e;
-                    margin-bottom: 0.5rem;
-                }
-                
-                .form-group input,
-                .form-group select,
-                .form-group textarea {
-                    width: 100%;
-                    padding: 0.75rem;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    font-size: 0.95rem;
-                }
-                
-                .form-group input:focus,
-                .form-group select:focus,
-                .form-group textarea:focus {
-                    outline: none;
-                    border-color: #e94560;
-                }
-                
-                .form-row {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 1rem;
-                }
-                
-                .upload-area {
-                    border: 2px dashed #e2e8f0;
-                    border-radius: 8px;
-                    padding: 2rem;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                
-                .upload-area:hover {
-                    border-color: #e94560;
-                    background: #fef2f2;
-                }
-                
-                .upload-area span {
-                    font-size: 2rem;
-                }
-                
-                .upload-area p {
-                    color: #64748b;
-                    font-size: 0.875rem;
-                    margin-top: 0.5rem;
-                }
-                
-                .modal-footer {
-                    display: flex;
-                    gap: 1rem;
-                    justify-content: flex-end;
-                    padding-top: 1rem;
-                    border-top: 1px solid #e2e8f0;
-                    margin-top: 1rem;
-                }
-                
-                .btn-secondary {
-                    padding: 0.75rem 1.5rem;
-                    background: #f1f5f9;
-                    color: #1a1a2e;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 500;
-                    cursor: pointer;
-                }
+                .product-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #f1f5f9; }
+                .product-price { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
+                .product-stock { font-size: 0.85rem; color: #64748b; }
+                .stock-digital { display: flex; align-items: center; gap: 0.25rem; color: #8b5cf6; background: rgba(139, 92, 246, 0.1); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 500; }
             `}</style>
         </div>
     );
