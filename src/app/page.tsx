@@ -1,158 +1,164 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-const productos = [
-  { id: '1', slug: 'rosa-elegante-bordado', nombre: 'Rosa Elegante', categoria: 'Bordados', precio: 89, precioAnterior: 129, imagen: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop', badge: 'Popular' },
-  { id: '2', slug: 'mariposa-monarca-dtf', nombre: 'Mariposa Monarca', categoria: 'DTF', precio: 65, imagen: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=400&h=400&fit=crop' },
-  { id: '3', slug: 'lettering-script-vinil', nombre: 'Lettering Script', categoria: 'Vinil', precio: 45, imagen: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&h=400&fit=crop' },
-  { id: '4', slug: 'mandala-floral-bordado', nombre: 'Mandala Floral', categoria: 'Bordados', precio: 149, imagen: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=400&fit=crop', badge: 'Nuevo' },
-];
-
-const categorias = [
-  { id: 'bordados', nombre: 'Bordados', desc: 'Diseños para máquina bordadora', imagen: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&h=300&fit=crop' },
-  { id: 'dtf', nombre: 'DTF', desc: 'Transfers de alta calidad', imagen: 'https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=300&fit=crop' },
-  { id: 'vinil', nombre: 'Vinil', desc: 'Plantillas de corte', imagen: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=300&fit=crop' },
+const featuredProducts = [
+  { id: '1', name: 'Le Sac Noir', category: 'Handbags', price: 890, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80', badge: 'New Season' },
+  { id: '2', name: 'Silk Écharpe', category: 'Accessories', price: 245, image: 'https://images.unsplash.com/photo-1520986606214-8b456906c813?w=800&q=80' },
+  { id: '3', name: 'Gold Chrono', category: 'Watches', price: 1250, image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&q=80' },
 ];
 
 export default function HomePage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="home">
-      {/* Header */}
-      <header className="header">
-        <div className="header-container">
-          <Link href="/" className="logo">Sell<span>ast</span></Link>
-          <nav className="nav">
-            <Link href="/productos">Catálogo</Link>
-            <Link href="/productos?cat=bordados">Bordados</Link>
-            <Link href="/productos?cat=dtf">DTF</Link>
-            <Link href="/productos?cat=vinil">Vinil</Link>
-          </nav>
-          <Link href="/carrito" className="cart">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
-            <span>0</span>
+    <div className="home bg-cream selection:bg-black selection:text-white">
+      {/* Sleek Navigation */}
+      <header className={`header ${scrolled ? 'scrolled' : ''}`}>
+        <div className="container header-inner">
+          <Link href="/" className="logo text-4xl font-serif font-bold tracking-tighter text-black">
+            Sellast<span className="text-gold">.</span>
           </Link>
+          <nav className="nav hidden md:flex gap-12 text-sm uppercase tracking-widest font-medium text-neutral-500">
+            <Link href="/catalog" className="hover:text-black transition-colors">Collection</Link>
+            <Link href="/about" className="hover:text-black transition-colors">Maison</Link>
+            <Link href="/journal" className="hover:text-black transition-colors">Journal</Link>
+          </nav>
+          <div className="flex gap-6 items-center">
+            <button className="text-black hover:opacity-70 transition-opacity">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+            <Link href="/cart" className="text-black hover:opacity-70 transition-opacity relative">
+              <span className="absolute -top-1 -right-2 text-[10px] bg-black text-white w-4 h-4 rounded-full flex items-center justify-center">2</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="hero">
-        <div className="hero-content">
-          <span className="hero-tag">Diseños Profesionales</span>
-          <h1>Bordados, DTF y Corte de Vinil</h1>
-          <p>Descarga diseños de alta calidad para tu negocio de personalización textil</p>
-          <div className="hero-btns">
-            <Link href="/productos" className="btn-primary">Ver Catálogo</Link>
-            <Link href="/productos?cat=bordados" className="btn-secondary">Bordados</Link>
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/luxury-hero.png"
+            alt="Luxury Background"
+            className="w-full h-full object-cover opacity-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream/90"></div>
+        </div>
+
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
+          <span className="block text-gold text-xs uppercase tracking-[0.3em] mb-6 animate-fade-in-up">Est. 2026 — Premium Collection</span>
+          <h1 className="text-6xl md:text-8xl font-serif font-medium text-black mb-8 leading-tight tracking-tight">
+            Elegance is <br /><span className="italic font-light">Refusal.</span>
+          </h1>
+          <p className="text-neutral-600 text-lg mb-12 max-w-lg mx-auto leading-relaxed">
+            Discover our curated selection of timeless essentials, crafted for those who speak the language of quiet luxury.
+          </p>
+
+          {/* Custom Premium Button */}
+          <Link href="/catalog">
+            <button className="px-10 py-4 bg-black text-white tracking-widest uppercase text-xs transition-all duration-700 hover:bg-neutral-800 hover:px-12 hover:tracking-[0.25em] border border-black">
+              Explorar Colección
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Invisible Grid Section */}
+      <section className="py-32 px-6 md:px-12 max-w-[1600px] mx-auto bg-cream">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-y-24 gap-x-12 items-end">
+          <div className="md:col-span-4 self-center">
+            <h2 className="text-4xl font-serif mb-6 leading-snug">The <span className="italic text-gold">Curated</span><br />Edit.</h2>
+            <p className="text-neutral-500 mb-8 leading-relaxed">
+              Pieces defined by superior quality and clean lines. An aesthetic that transcends trends.
+            </p>
+            <div className="h-px w-24 bg-black/10"></div>
           </div>
-        </div>
-      </section>
 
-      {/* Categorías */}
-      <section className="section categorias">
-        <h2>Nuestras Categorías</h2>
-        <div className="cat-grid">
-          {categorias.map(cat => (
-            <Link href={`/productos?cat=${cat.id}`} key={cat.id} className="cat-card">
-              <img src={cat.imagen} alt={cat.nombre} />
-              <div className="cat-info"><h3>{cat.nombre}</h3><p>{cat.desc}</p></div>
-            </Link>
-          ))}
-        </div>
-      </section>
+          {featuredProducts.map((p, idx) => (
+            <div key={p.id} className={`group md:col-span-4 ${idx === 1 ? 'md:translate-y-16' : ''}`}>
+              <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-neutral-100">
+                <img src={p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                {p.badge && <span className="absolute top-4 left-4 bg-white/90 text-[10px] uppercase tracking-wider px-3 py-1">{p.badge}</span>}
 
-      {/* Productos Destacados */}
-      <section className="section productos">
-        <h2>Productos Destacados</h2>
-        <div className="prod-grid">
-          {productos.map(p => (
-            <Link href={`/productos/${p.slug}`} key={p.id} className="prod-card">
-              <div className="prod-img">
-                <img src={p.imagen} alt={p.nombre} />
-                {p.badge && <span className="badge">{p.badge}</span>}
-              </div>
-              <div className="prod-info">
-                <span className="prod-cat">{p.categoria}</span>
-                <h3>{p.nombre}</h3>
-                <div className="prod-price">
-                  <span>${p.precio}</span>
-                  {p.precioAnterior && <span className="old">${p.precioAnterior}</span>}
+                {/* Invisible Action Layer */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button className="bg-white text-black px-6 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-colors duration-300">Quick View</button>
                 </div>
               </div>
-            </Link>
+              <div className="text-center">
+                <p className="text-xs text-neutral-400 uppercase tracking-widest mb-2">{p.category}</p>
+                <h3 className="text-xl font-serif mb-2">{p.name}</h3>
+                <p className="font-mono text-sm opacity-60">$ {p.price}</p>
+              </div>
+            </div>
           ))}
         </div>
-        <div className="section-cta"><Link href="/productos" className="btn-outline">Ver Todos →</Link></div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-brand"><span className="logo">Sell<span>ast</span></span><p>Diseños profesionales para tu negocio</p></div>
-          <div className="footer-links">
-            <h4>Catálogo</h4>
-            <Link href="/productos?cat=bordados">Bordados</Link>
-            <Link href="/productos?cat=dtf">DTF</Link>
-            <Link href="/productos?cat=vinil">Vinil</Link>
+      {/* Editorial / About Snippet */}
+      <section className="py-32 bg-black text-white text-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-purple-900 to-transparent"></div> {/* Subtle depth */}
+        <div className="container relative z-10">
+          <span className="block text-gold text-xs uppercase tracking-[0.3em] mb-6">The Philosophy</span>
+          <h2 className="text-5xl md:text-6xl font-serif mb-8 max-w-3xl mx-auto leading-tight">
+            "We believe in the luxury of <span className="text-neutral-400 italic">simplicity</span>."
+          </h2>
+          <Link href="/about" className="inline-block border-b border-white pb-1 text-sm uppercase tracking-widest hover:text-gold hover:border-gold transition-colors">
+            Read Our Story
+          </Link>
+        </div>
+      </section>
+
+      {/* Minimal Footer */}
+      <footer className="py-20 bg-cream border-t border-black/5 text-center md:text-left">
+        <div className="container grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="md:col-span-2">
+            <Link href="/" className="logo text-2xl font-serif font-bold tracking-tighter text-black mb-6 block">
+              Sellast<span className="text-gold">.</span>
+            </Link>
+            <p className="text-neutral-500 text-sm max-w-sm leading-relaxed">
+              A destination for refined aesthetics.
+              Redefining luxury through the lens of modern minimalism.
+            </p>
           </div>
-          <div className="footer-links">
-            <h4>Soporte</h4>
-            <Link href="/contacto">Contacto</Link>
-            <Link href="/faq">FAQ</Link>
+          <div>
+            <h4 className="font-serif mb-6 text-lg">Shop</h4>
+            <ul className="space-y-4 text-sm text-neutral-500 uppercase tracking-wide">
+              <li><Link href="#" className="hover:text-black transition-colors">New Arrivals</Link></li>
+              <li><Link href="#" className="hover:text-black transition-colors">Best Sellers</Link></li>
+              <li><Link href="#" className="hover:text-black transition-colors">Accessories</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-serif mb-6 text-lg">Client Services</h4>
+            <ul className="space-y-4 text-sm text-neutral-500 uppercase tracking-wide">
+              <li><Link href="#" className="hover:text-black transition-colors">Contact Us</Link></li>
+              <li><Link href="#" className="hover:text-black transition-colors">Shipping & Returns</Link></li>
+              <li><a href="#" className="hover:text-black transition-colors">Instagram</a></li>
+            </ul>
           </div>
         </div>
-        <div className="footer-bottom">© 2026 Sellast. Todos los derechos reservados.</div>
+        <div className="container mt-20 pt-8 border-t border-black/5 text-center text-xs text-neutral-400 uppercase tracking-widest">
+          © 2026 Sellast Inc. All Rights Reserved.
+        </div>
       </footer>
 
-      <style jsx>{`
-                .home{min-height:100vh}
-                .header{background:#1a1a2e;padding:1rem 2rem;position:sticky;top:0;z-index:100}
-                .header-container{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
-                .logo{font-size:1.5rem;font-weight:700;color:#fff;text-decoration:none}
-                .logo span{color:#e94560}
-                .nav{display:flex;gap:2rem}
-                .nav a{color:rgba(255,255,255,0.8);text-decoration:none}
-                .nav a:hover{color:#fff}
-                .cart{position:relative;color:#fff}
-                .cart span{position:absolute;top:-8px;right:-8px;background:#e94560;color:#fff;font-size:0.7rem;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-                .hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:6rem 2rem;text-align:center}
-                .hero-content{max-width:800px;margin:0 auto}
-                .hero-tag{display:inline-block;background:rgba(233,69,96,0.2);color:#e94560;padding:0.5rem 1rem;border-radius:20px;font-size:0.875rem;font-weight:600;margin-bottom:1.5rem}
-                .hero h1{font-size:3rem;color:#fff;margin-bottom:1rem;line-height:1.2}
-                .hero p{font-size:1.25rem;color:rgba(255,255,255,0.7);margin-bottom:2rem}
-                .hero-btns{display:flex;gap:1rem;justify-content:center}
-                .btn-primary{padding:1rem 2rem;background:linear-gradient(135deg,#e94560,#ff6b6b);color:#fff;text-decoration:none;border-radius:8px;font-weight:600}
-                .btn-secondary{padding:1rem 2rem;background:rgba(255,255,255,0.1);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;border:1px solid rgba(255,255,255,0.2)}
-                .section{max-width:1400px;margin:0 auto;padding:4rem 2rem}
-                .section h2{font-size:2rem;color:#1a1a2e;margin-bottom:2rem;text-align:center}
-                .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
-                .cat-card{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;text-decoration:none}
-                .cat-card img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
-                .cat-card:hover img{transform:scale(1.05)}
-                .cat-info{position:absolute;bottom:0;left:0;right:0;padding:2rem;background:linear-gradient(transparent,rgba(0,0,0,0.8))}
-                .cat-info h3{color:#fff;font-size:1.5rem;margin-bottom:0.25rem}
-                .cat-info p{color:rgba(255,255,255,0.7);font-size:0.9rem}
-                .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
-                .prod-card{background:#fff;border-radius:12px;overflow:hidden;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:all 0.3s}
-                .prod-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.1)}
-                .prod-img{position:relative;aspect-ratio:1}
-                .prod-img img{width:100%;height:100%;object-fit:cover}
-                .badge{position:absolute;top:0.75rem;left:0.75rem;background:#e94560;color:#fff;padding:0.25rem 0.75rem;border-radius:4px;font-size:0.75rem;font-weight:600}
-                .prod-info{padding:1.25rem}
-                .prod-cat{font-size:0.75rem;text-transform:uppercase;color:#e94560;font-weight:600}
-                .prod-info h3{font-size:1rem;color:#1a1a2e;margin:0.5rem 0}
-                .prod-price{display:flex;gap:0.5rem;align-items:center}
-                .prod-price span{font-size:1.1rem;font-weight:700;color:#1a1a2e}
-                .prod-price .old{font-size:0.9rem;color:#94a3b8;text-decoration:line-through;font-weight:400}
-                .section-cta{text-align:center;margin-top:2rem}
-                .btn-outline{padding:0.875rem 2rem;border:2px solid #e94560;color:#e94560;text-decoration:none;border-radius:8px;font-weight:600}
-                .footer{background:#1a1a2e;color:#fff;padding:4rem 2rem 2rem}
-                .footer-content{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:3rem}
-                .footer-brand p{color:rgba(255,255,255,0.6);margin-top:0.5rem}
-                .footer-links h4{margin-bottom:1rem;color:#fff}
-                .footer-links a{display:block;color:rgba(255,255,255,0.6);text-decoration:none;padding:0.25rem 0}
-                .footer-bottom{max-width:1400px;margin:3rem auto 0;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);text-align:center;color:rgba(255,255,255,0.5);font-size:0.875rem}
-                @media(max-width:900px){.cat-grid{grid-template-columns:1fr}.prod-grid{grid-template-columns:repeat(2,1fr)}.footer-content{grid-template-columns:1fr}.nav{display:none}}
-            `}</style>
+      <style jsx global>{`
+        .text-gold { color: #D4AF37; }
+        .bg-cream { background-color: #FDFCF8; }
+        .bg-black { background-color: #0a0a0a; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+      `}</style>
     </div>
   );
 }
