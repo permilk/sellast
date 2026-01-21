@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
                         },
                     },
                 },
-                variant: true,
+                variant: {
+                    include: { inventory: true }
+                },
             },
         });
 
@@ -76,11 +78,11 @@ export async function POST(request: NextRequest) {
 
         for (const item of cartItems) {
             const price = item.variant
-                ? Number(item.variant.price)
+                ? Number(item.variant.salePrice)
                 : Number(item.product.price);
 
             const stock = item.variant
-                ? item.variant.stock
+                ? item.variant.inventory.reduce((acc, inv) => acc + inv.quantity, 0)
                 : item.product.stock;
 
             if (item.quantity > stock) {
@@ -185,11 +187,11 @@ export async function POST(request: NextRequest) {
                             : item.product.name,
                         sku: item.variant?.sku || item.product.sku,
                         price: item.variant
-                            ? item.variant.price
+                            ? item.variant.salePrice
                             : item.product.price,
                         quantity: item.quantity,
                         subtotal: (item.variant
-                            ? Number(item.variant.price)
+                            ? Number(item.variant.salePrice)
                             : Number(item.product.price)) * item.quantity,
                     })),
                 },
