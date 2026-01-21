@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getProductsAction } from './actions/product.actions';
 
 // Tipo inferido (o importar interfaz)
@@ -41,6 +42,10 @@ export default function ProductosPage() {
         setLoading(false);
     };
 
+    const router = useRouter(); // Need to import this
+
+    // ... (rest of state)
+
     return (
         <div className="productos-page">
             <div className="page-header">
@@ -51,9 +56,9 @@ export default function ProductosPage() {
                     <button className="btn-cyan">
                         <span>+</span> Exportar
                     </button>
-                    <Link href="/admin/productos/nuevo" className="btn-cyan">
+                    <button onClick={() => router.push('/admin/productos/nuevo')} className="btn-cyan">
                         <span>+</span> Registrar
-                    </Link>
+                    </button>
                 </div>
             </div>
 
