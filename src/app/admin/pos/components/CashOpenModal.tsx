@@ -105,7 +105,7 @@ export default function CashOpenModal({ isOpen, onClose, onConfirm }: CashOpenMo
                                         color: '#64748b',
                                         fontWeight: 600
                                     }}>
-                                        S/
+                                        $
                                     </span>
                                     <input
                                         type="number"

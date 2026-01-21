@@ -205,7 +205,7 @@ export default function POSSalesPage() {
                                         </svg>
                                     </div>
                                     <div className="product-tile-name">{prod.name}</div>
-                                    <div className="product-tile-price">S/ {prod.price.toFixed(2)}</div>
+                                    <div className="product-tile-price">$ {prod.price.toFixed(2)}</div>
                                     <div className="product-tile-category">{prod.category}</div>
                                 </div>
                             ))}
@@ -297,65 +297,46 @@ export default function POSSalesPage() {
                             ) : (
                                 carrito.map(item => (
                                     <div key={item.id} style={{
-                                        display: 'flex',
-                                        alignItems: 'flex-start',
-                                        gap: '0.75rem',
-                                        padding: '1rem 0',
-                                        borderBottom: '1px solid #f3f4f6',
-                                        borderLeft: '3px solid #3B82F6',
-                                        paddingLeft: '1rem',
-                                        marginBottom: '0.5rem'
+                                        background: '#fff',
+                                        border: '1px solid #e5e7eb',
+                                        borderLeft: '4px solid #3B82F6',
+                                        borderRadius: '8px',
+                                        padding: '0.75rem',
+                                        marginBottom: '0.75rem'
                                     }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: '#1f2937', marginBottom: '0.35rem' }}>{item.name}</div>
-                                            <span style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem',
-                                                background: '#10B981',
-                                                color: 'white',
-                                                fontSize: '0.7rem',
-                                                fontWeight: 600,
-                                                padding: '0.2rem 0.5rem',
-                                                borderRadius: '4px',
-                                                marginBottom: '0.5rem'
-                                            }}>
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
-                                                Unidad
-                                            </span>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-                                                <button onClick={() => updateQty(item.id, -1)} style={{
-                                                    width: '28px', height: '28px', border: '1px solid #e5e7eb', borderRadius: '4px',
-                                                    background: '#fff', cursor: 'pointer', fontSize: '1rem', color: '#6b7280'
-                                                }}>−</button>
-                                                <input
-                                                    type="text"
-                                                    value={item.cantidad}
-                                                    readOnly
-                                                    style={{
-                                                        width: '40px', textAlign: 'center', border: '1px solid #e5e7eb',
-                                                        borderRadius: '4px', padding: '0.25rem', fontSize: '0.9rem'
-                                                    }}
-                                                />
-                                                <button onClick={() => updateQty(item.id, 1)} style={{
-                                                    width: '28px', height: '28px', border: '1px solid #e5e7eb', borderRadius: '4px',
-                                                    background: '#fff', cursor: 'pointer', fontSize: '1rem', color: '#6b7280'
-                                                }}>+</button>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '0.9rem' }}>{item.name}</div>
+                                                <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>$ {item.price.toFixed(2)} c/u</div>
                                             </div>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
                                             <button onClick={() => removeFromCart(item.id)} style={{
-                                                width: '36px', height: '36px', background: '#F97316', border: 'none',
-                                                borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                                justifyContent: 'center', marginBottom: '0.5rem'
+                                                width: '28px', height: '28px', background: '#FEE2E2', border: 'none',
+                                                borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                                justifyContent: 'center'
                                             }}>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
                                                     <polyline points="3 6 5 6 21 6" />
                                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                                 </svg>
                                             </button>
-                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>$ {item.price.toFixed(2)} c/u</div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#3B82F6' }}>$ {(item.price * item.cantidad).toFixed(2)}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                                <button onClick={() => updateQty(item.id, -1)} style={{
+                                                    width: '26px', height: '26px', border: '1px solid #e5e7eb', borderRadius: '4px',
+                                                    background: '#f9fafb', cursor: 'pointer', fontSize: '0.9rem', color: '#374151'
+                                                }}>−</button>
+                                                <span style={{
+                                                    width: '32px', textAlign: 'center', fontWeight: 600, fontSize: '0.9rem'
+                                                }}>{item.cantidad}</span>
+                                                <button onClick={() => updateQty(item.id, 1)} style={{
+                                                    width: '26px', height: '26px', border: '1px solid #e5e7eb', borderRadius: '4px',
+                                                    background: '#f9fafb', cursor: 'pointer', fontSize: '0.9rem', color: '#374151'
+                                                }}>+</button>
+                                            </div>
+                                            <div style={{ fontWeight: 700, color: '#3B82F6', fontSize: '1rem' }}>
+                                                $ {(item.price * item.cantidad).toFixed(2)}
+                                            </div>
                                         </div>
                                     </div>
                                 ))

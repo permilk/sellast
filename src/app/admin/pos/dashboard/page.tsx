@@ -100,7 +100,7 @@ export default function POSDashboardPage() {
                 <div className="kpi-grid">
                     <div className="kpi-card gradient-magenta">
                         <span className="kpi-card-label">Ventas Hoy</span>
-                        <span className="kpi-card-value">S/ 0.00</span>
+                        <span className="kpi-card-value">$ 0.00</span>
                         <span className="kpi-card-sublabel">Total del día</span>
                     </div>
                     <div className="kpi-card gradient-cyan">
