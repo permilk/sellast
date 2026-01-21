@@ -4,26 +4,31 @@
 // ADMIN - REPORTES
 // ============================================
 
+import { useState } from 'react';
+
+// Datos actualizados para coincidir con el catálogo real
 const reportesData = {
     ventasSemana: [
-        { dia: 'Lun', monto: 4500 },
-        { dia: 'Mar', monto: 6200 },
-        { dia: 'Mié', monto: 3800 },
-        { dia: 'Jue', monto: 7100 },
-        { dia: 'Vie', monto: 8900 },
-        { dia: 'Sáb', monto: 12500 },
-        { dia: 'Dom', monto: 5600 },
+        { dia: 'Lun', monto: 1200 },
+        { dia: 'Mar', monto: 1850 },
+        { dia: 'Mié', monto: 3200 },
+        { dia: 'Jue', monto: 2100 },
+        { dia: 'Vie', monto: 4500 },
+        { dia: 'Sáb', monto: 5600 },
+        { dia: 'Dom', monto: 6100 },
     ],
+    // Top productos actualizados
     topProductos: [
-        { nombre: 'Bolso Premium Leather', ventas: 45, ingresos: 58455 },
-        { nombre: 'Reloj Clásico Dorado', ventas: 32, ingresos: 79968 },
-        { nombre: 'Zapatillas Urban Style', ventas: 28, ingresos: 53172 },
-        { nombre: 'Lentes de Sol Aviator', ventas: 67, ingresos: 53533 },
+        { nombre: 'Mariposa Monarca - DTF', ventas: 120, ingresos: 7800 },
+        { nombre: 'Rosa Elegante - Bordado', ventas: 85, ingresos: 7565 },
+        { nombre: 'Lettering Script - Vinil', ventas: 64, ingresos: 2880 },
+        { nombre: 'Tigre Realista - DTF', ventas: 42, ingresos: 5040 },
+        { nombre: 'Mandala Floral - Bordado', ventas: 30, ingresos: 4470 },
     ],
     resumen: {
-        ventasMes: 245600,
+        ventasMes: 24500,
         pedidosMes: 89,
-        ticketPromedio: 2759,
+        ticketPromedio: 275, // Ajustado a precios reales
         clientesNuevos: 34,
     },
 };
@@ -33,107 +38,132 @@ function formatCurrency(amount: number) {
 }
 
 export default function ReportesPage() {
-    const maxVenta = Math.max(...reportesData.ventasSemana.map(d => d.monto));
+    const [periodo, setPeriodo] = useState('mes');
 
     return (
         <div className="reportes-page">
             <div className="page-header">
                 <div>
                     <h1>Reportes</h1>
-                    <p>Análisis de ventas y rendimiento</p>
+                    <p>Análisis de ventas y rendimiento del catálogo</p>
                 </div>
-                <div className="header-actions">
-                    <select className="period-select">
-                        <option>Últimos 7 días</option>
-                        <option>Últimos 30 días</option>
-                        <option>Este mes</option>
-                        <option>Este año</option>
+                <div className="periodo-selector">
+                    <select value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
+                        <option value="semana">Últimos 7 días</option>
+                        <option value="mes">Este Mes</option>
+                        <option value="ano">Este Año</option>
                     </select>
-                    <button className="btn-export">📥 Exportar</button>
+                    <button className="btn-export">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                        Descargar PDF
+                    </button>
                 </div>
             </div>
 
-            {/* Resumen */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <span className="stat-value">{formatCurrency(reportesData.resumen.ventasMes)}</span>
-                    <span className="stat-label">Ventas del Mes</span>
+            {/* Resumen Cards */}
+            <div className="resumen-grid">
+                <div className="resumen-card">
+                    <span className="label">Ventas Totales</span>
+                    <span className="value">{formatCurrency(reportesData.resumen.ventasMes)}</span>
+                    <span className="trend positive">↑ 12% vs mes anterior</span>
                 </div>
-                <div className="stat-card">
-                    <span className="stat-value">{reportesData.resumen.pedidosMes}</span>
-                    <span className="stat-label">Pedidos</span>
+                <div className="resumen-card">
+                    <span className="label">Pedidos</span>
+                    <span className="value">{reportesData.resumen.pedidosMes}</span>
+                    <span className="trend positive">↑ 5% vs mes anterior</span>
                 </div>
-                <div className="stat-card">
-                    <span className="stat-value">{formatCurrency(reportesData.resumen.ticketPromedio)}</span>
-                    <span className="stat-label">Ticket Promedio</span>
+                <div className="resumen-card">
+                    <span className="label">Ticket Promedio</span>
+                    <span className="value">{formatCurrency(reportesData.resumen.ticketPromedio)}</span>
+                    <span className="trend negative">↓ 2% vs mes anterior</span>
                 </div>
-                <div className="stat-card">
-                    <span className="stat-value">{reportesData.resumen.clientesNuevos}</span>
-                    <span className="stat-label">Clientes Nuevos</span>
+                <div className="resumen-card">
+                    <span className="label">Clientes Nuevos</span>
+                    <span className="value">{reportesData.resumen.clientesNuevos}</span>
+                    <span className="trend positive">↑ 8% vs mes anterior</span>
                 </div>
             </div>
 
-            <div className="reports-grid">
-                {/* Gráfico de Ventas */}
-                <div className="report-card">
-                    <h3>Ventas de la Semana</h3>
+            <div className="charts-grid">
+                {/* Gráfico Barras Simple (Visual) */}
+                <div className="panel chart-panel">
+                    <h3>Ventas por Semana</h3>
                     <div className="chart-container">
-                        {reportesData.ventasSemana.map((d, i) => (
-                            <div key={i} className="chart-bar-container">
-                                <div className="chart-bar" style={{ height: `${(d.monto / maxVenta) * 100}%` }}>
-                                    <span className="bar-value">{formatCurrency(d.monto)}</span>
+                        <div className="bar-chart">
+                            {reportesData.ventasSemana.map((d, i) => (
+                                <div key={i} className="bar-group">
+                                    <div className="bar" style={{ height: `${(d.monto / 7000) * 100}%` }}>
+                                        <span className="tooltip">{formatCurrency(d.monto)}</span>
+                                    </div>
+                                    <span className="bar-label">{d.dia}</span>
                                 </div>
-                                <span className="bar-label">{d.dia}</span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Top Productos */}
-                <div className="report-card">
+                <div className="panel top-products-panel">
                     <h3>Top Productos</h3>
-                    <div className="top-list">
-                        {reportesData.topProductos.map((p, i) => (
-                            <div key={i} className="top-item">
-                                <span className="top-rank">#{i + 1}</span>
-                                <div className="top-info">
-                                    <span className="top-name">{p.nombre}</span>
-                                    <span className="top-stats">{p.ventas} ventas</span>
+                    <ul className="top-list">
+                        {reportesData.topProductos.map((prod, i) => (
+                            <li key={i} className="top-item">
+                                <div className="rank">{i + 1}</div>
+                                <div className="prod-details">
+                                    <span className="prod-name">{prod.nombre}</span>
+                                    <span className="prod-sales">{prod.ventas} ventas</span>
                                 </div>
-                                <span className="top-revenue">{formatCurrency(p.ingresos)}</span>
-                            </div>
+                                <div className="prod-revenue">
+                                    {formatCurrency(prod.ingresos)}
+                                </div>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             </div>
 
             <style jsx>{`
                 .reportes-page { max-width: 1400px; }
                 .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-                .page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.25rem; }
-                .page-header p { color: #64748b; }
-                .header-actions { display: flex; gap: 1rem; }
-                .period-select { padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; }
-                .btn-export { padding: 0.75rem 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; }
-                .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-                .stat-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-                .stat-value { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
-                .stat-label { font-size: 0.875rem; color: #64748b; }
-                .reports-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-                .report-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                .report-card h3 { font-size: 1.1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 1.5rem; }
-                .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; gap: 0.5rem; }
-                .chart-bar-container { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
-                .chart-bar { background: linear-gradient(to top, #e94560, #ff6b6b); border-radius: 4px 4px 0 0; width: 100%; position: relative; min-height: 20px; display: flex; align-items: flex-start; justify-content: center; }
-                .bar-value { font-size: 0.65rem; color: #fff; padding-top: 4px; white-space: nowrap; }
-                .bar-label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
-                .top-list { display: flex; flex-direction: column; gap: 1rem; }
-                .top-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 8px; }
-                .top-rank { font-size: 1rem; font-weight: 700; color: #e94560; width: 30px; }
-                .top-info { flex: 1; display: flex; flex-direction: column; }
-                .top-name { font-weight: 500; color: #1a1a2e; }
-                .top-stats { font-size: 0.8rem; color: #64748b; }
-                .top-revenue { font-family: monospace; font-weight: 600; color: #1a1a2e; }
+                .page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
+                .periodo-selector { display: flex; gap: 1rem; }
+                .periodo-selector select { padding: 0.5rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+                .btn-export { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; color: #64748b; }
+                
+                .resumen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+                .resumen-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.5rem; }
+                .resumen-card .label { font-size: 0.85rem; color: #64748b; }
+                .resumen-card .value { font-size: 1.75rem; font-weight: 800; color: #1a1a2e; }
+                .trend { font-size: 0.75rem; font-weight: 600; }
+                .trend.positive { color: #10b981; }
+                .trend.negative { color: #ef4444; }
+
+                .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+                .panel { background: #fff; border-radius: 12px; padding: 1.5rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+                .panel h3 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.5rem; }
+
+                .chart-container { height: 300px; display: flex; align-items: flex-end; justify-content: center; }
+                .bar-chart { display: flex; align-items: flex-end; gap: 1.5rem; height: 100%; width: 100%; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+                .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; height: 100%; justify-content: flex-end; }
+                .bar { width: 100%; background: #e94560; border-radius: 6px 6px 0 0;  position: relative; min-height: 4px; transition: height 0.5s ease; }
+                .bar:hover { opacity: 0.9; }
+                .bar:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+                .tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(0); background: #1a1a2e; color: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; opacity: 0; transition: all 0.2s; pointer-events: none; }
+                .bar-label { font-size: 0.8rem; color: #64748b; }
+
+                .top-list { list-style: none; padding: 0; }
+                .top-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #f1f5f9; }
+                .top-item:last-child { border-bottom: none; }
+                .rank { width: 24px; height: 24px; background: #f1f5f9; color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+                .prod-details { flex: 1; display: flex; flex-direction: column; }
+                .prod-name { font-weight: 600; font-size: 0.95rem; color: #1a1a2e; }
+                .prod-sales { font-size: 0.8rem; color: #64748b; }
+                .prod-revenue { font-weight: 700; color: #10b981; }
+
+                @media (max-width: 900px) {
+                    .resumen-grid { grid-template-columns: 1fr 1fr; }
+                    .charts-grid { grid-template-columns: 1fr; }
+                }
             `}</style>
         </div>
     );
