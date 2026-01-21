@@ -236,7 +236,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     display: flex;
                     flex-direction: column;
                     position: fixed;
-                    height: 10vh;
+                    height: 100vh;
                     z-index: 50;
                     transition: width 0.3s;
                 }
