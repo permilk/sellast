@@ -1,9 +1,16 @@
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 const prismaClientSingleton = () => {
-    return new PrismaClient({
-        log: ['warn', 'error'],
-    });
+    // Si estamos en Vercel/Producción, usamos el adapter
+    // Aunque localmente también podemos usarlo si tenemos las credenciales correctas en DATABASE_URL
+    const connectionString = `${process.env.DATABASE_URL}`;
+
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+
+    return new PrismaClient({ adapter });
 };
 
 declare global {
