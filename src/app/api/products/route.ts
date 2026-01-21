@@ -78,39 +78,30 @@ export async function POST(request: NextRequest) {
         const {
             sku,
             name,
-            slug,
             description,
             price,
-            comparePrice,
-            costPrice,
             stock,
-            lowStockAt,
             weight,
             categoryId,
             images,
         } = body;
 
         // Validar campos requeridos
-        if (!sku || !name || !slug || !price || !categoryId) {
+        if (!sku || !name || !price || !categoryId) {
             return NextResponse.json(
                 { error: 'Faltan campos requeridos' },
                 { status: 400 }
             );
         }
 
-        // Verificar que SKU y slug no existan
+        // Verificar que SKU no exista
         const existing = await prisma.product.findFirst({
-            where: {
-                OR: [
-                    { sku },
-                    { slug },
-                ],
-            },
+            where: { sku },
         });
 
         if (existing) {
             return NextResponse.json(
-                { error: 'Ya existe un producto con ese SKU o URL' },
+                { error: 'Ya existe un producto con ese SKU' },
                 { status: 400 }
             );
         }
@@ -120,20 +111,14 @@ export async function POST(request: NextRequest) {
             data: {
                 sku,
                 name,
-                slug,
                 description,
                 price,
-                comparePrice,
-                costPrice,
                 stock: stock || 0,
-                lowStockAt: lowStockAt || 5,
                 weight,
                 categoryId,
                 images: images?.length ? {
-                    create: images.map((img: { url: string; alt?: string }, index: number) => ({
+                    create: images.map((img: { url: string }, index: number) => ({
                         url: img.url,
-                        alt: img.alt || name,
-                        sortOrder: index,
                         isPrimary: index === 0,
                     })),
                 } : undefined,
@@ -144,17 +129,19 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Registrar en inventario
+        // Registrar en audit log (reemplaza inventory log)
         if (stock && stock > 0) {
-            await prisma.inventoryLog.create({
+            await prisma.auditLog.create({
                 data: {
-                    productId: product.id,
-                    type: 'RESTOCK',
-                    quantity: stock,
-                    reason: 'Stock inicial',
-                    previousQty: 0,
-                    newQty: stock,
-                    createdBy: 'system',
+                    entity: 'Product',
+                    entityId: product.id,
+                    action: 'INITIAL_STOCK',
+                    userId: 'admin', // TODO: get real user
+                    details: {
+                        quantity: stock,
+                        reason: 'Stock inicial',
+                        newQty: stock,
+                    },
                 },
             });
         }
