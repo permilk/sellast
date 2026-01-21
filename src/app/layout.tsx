@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-});
+import "@/styles/design-system.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-primary",
   display: "swap",
 });
 
@@ -21,12 +16,12 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sellast | Tienda Premium",
-  description: "Descubre productos exclusivos con la mejor calidad. Envío gratis en compras mayores a $500.",
-  keywords: ["tienda online", "ecommerce", "productos premium", "compras online"],
+  title: "Sellast | Sistema POS Empresarial",
+  description: "Sistema de punto de venta profesional para México. Gestión de inventario, ventas, clientes y reportes.",
+  keywords: ["POS", "punto de venta", "inventario", "ventas", "México", "ERP"],
   openGraph: {
-    title: "Sellast | Tienda Premium",
-    description: "Descubre productos exclusivos con la mejor calidad",
+    title: "Sellast | Sistema POS Empresarial",
+    description: "Sistema de punto de venta profesional para México",
     type: "website",
   },
 };
@@ -37,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${playfair.variable} ${inter.variable} ${jetbrains.variable}`}>
-      <body>{children}</body>
+    <html lang="es" className={`${inter.variable} ${jetbrains.variable}`}>
+      <body style={{ fontFamily: 'var(--font-primary)' }}>{children}</body>
     </html>
   );
 }
