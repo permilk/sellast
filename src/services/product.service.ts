@@ -81,7 +81,7 @@ export class ProductService {
                             // If tracking stock, create inventory entry for default warehouse
                             inventory: data.trackStock ? {
                                 create: {
-                                    warehouseId: 'DEFAULT_WAREHOUSE_ID', // TODO: Get real warehouse ID
+                                    warehouseId: (await prisma.warehouse.findFirst())?.id || 'default-warehouse', // Fallback or fetch real
                                     quantity: data.initialStock || 0,
                                     minStock: data.minStock || 5
                                 }
