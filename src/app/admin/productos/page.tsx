@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================
-// ADMIN - PRODUCTOS LISTADO (CONNECTED)
+// ADMIN - PRODUCTOS LISTADO (CONNECTED) - UI REFINED
 // ============================================
 
 import Link from 'next/link';
