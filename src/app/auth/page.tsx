@@ -362,21 +362,18 @@ export default function AuthLoginPage() {
                 .features {
                     display: flex;
                     flex-direction: column;
-                    gap: 1.25rem;
+                    gap: 1rem;
                 }
 
                 .feature {
                     display: flex;
-                    align-items: flex-start;
-                    gap: 1rem;
+                    align-items: center;
+                    gap: 0.85rem;
                 }
 
                 .feature-icon {
-                    width: 40px;
-                    height: 40px;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
+                    width: 22px;
+                    height: 22px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -384,26 +381,26 @@ export default function AuthLoginPage() {
                 }
 
                 .feature-icon svg {
-                    width: 20px;
-                    height: 20px;
+                    width: 22px;
+                    height: 22px;
                     color: #FF4D6D;
                 }
 
                 .feature-text {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.15rem;
+                    gap: 0.1rem;
                 }
 
                 .feature-text strong {
                     color: #F8FAFC;
-                    font-size: 0.95rem;
+                    font-size: 0.9rem;
                     font-weight: 500;
                 }
 
                 .feature-text span {
                     color: #64748B;
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
                 }
 
                 .branding-footer {
