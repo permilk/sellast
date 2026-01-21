@@ -93,9 +93,9 @@ export default function ProductosPage() {
                         onClick={() => alert('Exportando productos...')}
                         style={{
                             padding: '0.75rem 1rem',
-                            background: '#06B6D4',
-                            color: 'white',
-                            border: 'none',
+                            background: 'white',
+                            color: '#374151',
+                            border: '1px solid #D1D5DB',
                             borderRadius: '8px',
                             fontSize: '0.9rem',
                             fontWeight: 600,
@@ -114,7 +114,7 @@ export default function ProductosPage() {
                     <Link href="/admin/productos/nuevo">
                         <button style={{
                             padding: '0.75rem 1rem',
-                            background: '#10B981',
+                            background: '#2563EB',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',

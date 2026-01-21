@@ -279,12 +279,12 @@ export default function POSSalesPage() {
 
                         {/* Cart Items */}
                         <div style={{
-                            flex: 1,
+                            flexGrow: 1,
+                            height: '400px',
                             overflowY: 'auto',
                             padding: '1rem 1.25rem',
-                            minHeight: '200px',
-                            maxHeight: 'calc(100vh - 550px)',
-                            background: '#FAFAFA'
+                            background: '#F8F9FA',
+                            border: '1px solid #e5e7eb'
                         }}>
                             {carrito.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '2rem 0', color: '#9ca3af' }}>

@@ -125,7 +125,7 @@ export default function InventarioPage() {
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button style={{
                         padding: '0.75rem 1rem',
-                        background: '#10B981',
+                        background: '#2563EB',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',

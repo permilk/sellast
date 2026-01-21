@@ -128,7 +128,7 @@ export default function ClientesPage() {
                         onClick={handleAddCustomer}
                         style={{
                             padding: '0.75rem 1rem',
-                            background: '#10B981',
+                            background: '#2563EB',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
