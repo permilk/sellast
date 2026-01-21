@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { processSaleAction, searchProductsAction } from './actions/pos.actions';
 import AddToCartModal from './components/AddToCartModal';
+import ProcessSaleModal from './components/ProcessSaleModal';
+import SaleReceiptModal from './components/SaleReceiptModal';
 import './pos-styles.css';
 
 // Mock products for grid display
@@ -36,6 +38,11 @@ export default function POSSalesPage() {
     // Modal state
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
+
+    // Sale modals
+    const [showProcessModal, setShowProcessModal] = useState(false);
+    const [showReceiptModal, setShowReceiptModal] = useState(false);
+    const [lastSaleData, setLastSaleData] = useState<any>(null);
 
     // Filter products
     const filteredProducts = mockProducts.filter(prod => {
@@ -78,23 +85,29 @@ export default function POSSalesPage() {
     };
 
     const subtotal = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
-    const igv = subtotal * 0.18;
-    const total = subtotal - descuento;
+    const iva = (subtotal - descuento) * 0.16; // IVA 16% México
+    const total = subtotal - descuento + iva;
 
-    const handlePay = async () => {
+    const handlePay = () => {
         if (carrito.length === 0) return;
+        setShowProcessModal(true);
+    };
+
+    const handleFinalizeSale = async (saleData: any) => {
         setLoadingPay(true);
+        setShowProcessModal(false);
 
         const result = await processSaleAction({
             items: carrito.map(i => ({ id: i.id, price: i.price, quantity: i.cantidad })),
-            total,
-            subtotal,
-            discount: descuento,
-            paymentMethod: 'CASH'
+            total: saleData.total,
+            subtotal: saleData.subtotal,
+            discount: saleData.descuento,
+            paymentMethod: saleData.metodoPago.toUpperCase()
         });
 
         if (result.success) {
-            alert('¡Venta realizada con éxito!');
+            setLastSaleData(saleData);
+            setShowReceiptModal(true);
             setCarrito([]);
             setDescuento(0);
         } else {
@@ -381,15 +394,15 @@ export default function POSSalesPage() {
                         <div style={{ padding: '1rem 1.25rem', background: '#F9FAFB', borderTop: '1px solid #e5e7eb' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                                 <span style={{ color: '#6b7280' }}>Subtotal:</span>
-                                <span style={{ fontWeight: 600, color: '#374151' }}>S/ {subtotal.toFixed(2)}</span>
+                                <span style={{ fontWeight: 600, color: '#374151' }}>$ {subtotal.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                                 <span style={{ color: '#6b7280' }}>Descuento:</span>
-                                <span style={{ fontWeight: 600, color: '#EF4444' }}>S/ {descuento.toFixed(2)}</span>
+                                <span style={{ fontWeight: 600, color: '#EF4444' }}>$ {descuento.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                                <span style={{ color: '#6b7280' }}>IGV (18.00%):</span>
-                                <span style={{ fontWeight: 600, color: '#374151' }}>S/ {igv.toFixed(2)}</span>
+                                <span style={{ color: '#6b7280' }}>IVA (16.00%):</span>
+                                <span style={{ fontWeight: 600, color: '#374151' }}>$ {iva.toFixed(2)}</span>
                             </div>
                             <div style={{
                                 display: 'flex', justifyContent: 'space-between',
@@ -397,7 +410,7 @@ export default function POSSalesPage() {
                                 fontSize: '1.1rem'
                             }}>
                                 <span style={{ fontWeight: 700, color: '#1f2937' }}>Total:</span>
-                                <span style={{ fontWeight: 700, color: '#3B82F6' }}>S/ {total.toFixed(2)}</span>
+                                <span style={{ fontWeight: 700, color: '#3B82F6' }}>$ {total.toFixed(2)}</span>
                             </div>
                         </div>
 
@@ -463,6 +476,30 @@ export default function POSSalesPage() {
                 product={selectedProduct}
                 onClose={() => setShowAddModal(false)}
                 onAdd={handleAddToCart}
+            />
+
+            {/* Process Sale Modal */}
+            <ProcessSaleModal
+                isOpen={showProcessModal}
+                onClose={() => setShowProcessModal(false)}
+                cartItems={carrito}
+                subtotal={subtotal}
+                descuento={descuento}
+                cliente={cliente}
+                onFinalizeSale={handleFinalizeSale}
+            />
+
+            {/* Sale Receipt Modal */}
+            <SaleReceiptModal
+                isOpen={showReceiptModal}
+                onClose={() => setShowReceiptModal(false)}
+                saleData={lastSaleData}
+                companyInfo={{
+                    name: 'Sellast POS',
+                    rfc: 'SEL260121XX0',
+                    address: 'Av. Reforma 100, CDMX',
+                    phone: '55 1234 5678'
+                }}
             />
         </div>
     );

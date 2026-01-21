@@ -1,210 +1,349 @@
 'use client';
 
-// ============================================
-// ADMIN - INVENTARIO
-// ============================================
-
 import { useState } from 'react';
 
-// Datos actualizados para coincidir con Bordados/DTF/Vinil
-const inventarioInicial = [
-    { id: '1', sku: 'DTF-001', nombre: 'Mariposa Monarca - DTF', stock: 150, minimo: 20, status: 'ok' },
-    { id: '2', sku: 'VIN-001', nombre: 'Lettering Script - Vinil', stock: 50, minimo: 10, status: 'ok' },
-    { id: '3', sku: 'DTF-002', nombre: 'Tigre Realista - DTF', stock: 80, minimo: 15, status: 'ok' },
-    { id: '4', sku: 'DTF-003', nombre: 'Flor Acuarela - DTF', stock: 5, minimo: 10, status: 'low' },
-    { id: '5', sku: 'VIN-002', nombre: 'Corazón Geométrico - Vinil', stock: 0, minimo: 10, status: 'out' },
-    // Los bordados son digitales, no suelen tener stock físico, pero lo incluimos por consistencia o venta de insumos
-    { id: '6', sku: 'INS-001', nombre: 'Hilo Metálico Dorado', stock: 25, minimo: 5, status: 'ok' },
+interface InventoryItem {
+    id: string;
+    producto: string;
+    sku: string;
+    stockActual: number;
+    stockMinimo: number;
+    stockMaximo: number;
+    ultimoMovimiento: string;
+    estado: 'normal' | 'bajo' | 'agotado' | 'exceso';
+}
+
+const mockInventory: InventoryItem[] = [
+    { id: '1', producto: 'Whisky JackDaniels', sku: 'WJD-001', stockActual: 24, stockMinimo: 10, stockMaximo: 50, ultimoMovimiento: '21/01/2026', estado: 'normal' },
+    { id: '2', producto: 'Vodka Absolut', sku: 'VA-001', stockActual: 18, stockMinimo: 10, stockMaximo: 40, ultimoMovimiento: '20/01/2026', estado: 'normal' },
+    { id: '3', producto: 'CocaCola', sku: 'CC-001', stockActual: 5, stockMinimo: 20, stockMaximo: 100, ultimoMovimiento: '21/01/2026', estado: 'bajo' },
+    { id: '4', producto: 'Agua San 1Lt', sku: 'AS-001', stockActual: 0, stockMinimo: 30, stockMaximo: 150, ultimoMovimiento: '19/01/2026', estado: 'agotado' },
+    { id: '5', producto: 'Pisco Suerño', sku: 'PS-001', stockActual: 36, stockMinimo: 15, stockMaximo: 60, ultimoMovimiento: '18/01/2026', estado: 'normal' },
+    { id: '6', producto: 'Preparado', sku: 'PR-001', stockActual: 65, stockMinimo: 5, stockMaximo: 50, ultimoMovimiento: '21/01/2026', estado: 'exceso' },
 ];
 
-const movimientosIniciales = [
-    { id: '1', tipo: 'SALE_WEB', producto: 'Mariposa Monarca - DTF', cantidad: -10, fecha: '2026-01-20 14:30' },
-    { id: '2', tipo: 'RESTOCK', producto: 'Tigre Realista - DTF', cantidad: +50, fecha: '2026-01-20 10:15' },
-    { id: '3', tipo: 'SALE_WEB', producto: 'Flor Acuarela - DTF', cantidad: -2, fecha: '2026-01-19 18:45' },
-    { id: '4', tipo: 'ADJUSTMENT', producto: 'Corazón Geométrico - Vinil', cantidad: -1, fecha: '2026-01-19 09:20', motivo: 'Dañado' },
+interface Movement {
+    id: string;
+    fecha: string;
+    tipo: 'entrada' | 'salida' | 'ajuste';
+    producto: string;
+    cantidad: number;
+    motivo: string;
+}
+
+const mockMovements: Movement[] = [
+    { id: '1', fecha: '21/01/2026 14:30', tipo: 'salida', producto: 'CocaCola', cantidad: 12, motivo: 'Venta' },
+    { id: '2', fecha: '21/01/2026 12:00', tipo: 'entrada', producto: 'Whisky JackDaniels', cantidad: 10, motivo: 'Compra a proveedor' },
+    { id: '3', fecha: '21/01/2026 10:15', tipo: 'ajuste', producto: 'Preparado', cantidad: 5, motivo: 'Inventario físico' },
+    { id: '4', fecha: '20/01/2026 16:45', tipo: 'salida', producto: 'Vodka Absolut', cantidad: 3, motivo: 'Venta' },
+    { id: '5', fecha: '20/01/2026 11:00', tipo: 'entrada', producto: 'Pisco Suerño', cantidad: 20, motivo: 'Compra a proveedor' },
 ];
 
 export default function InventarioPage() {
-    const [inventario, setInventario] = useState(inventarioInicial);
-    const [movimientos] = useState(movimientosIniciales);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [inventory] = useState<InventoryItem[]>(mockInventory);
+    const [movements] = useState<Movement[]>(mockMovements);
+    const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const getEstadoBadge = (estado: string) => {
+        const styles: Record<string, { bg: string; color: string; label: string }> = {
+            normal: { bg: '#D1FAE5', color: '#059669', label: 'Normal' },
+            bajo: { bg: '#FEF3C7', color: '#D97706', label: 'Stock Bajo' },
+            agotado: { bg: '#FEE2E2', color: '#DC2626', label: 'Agotado' },
+            exceso: { bg: '#DBEAFE', color: '#2563EB', label: 'Exceso' }
+        };
+        const style = styles[estado];
+        return (
+            <span style={{
+                background: style.bg,
+                color: style.color,
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                fontSize: '0.75rem',
+                fontWeight: 600
+            }}>
+                {style.label}
+            </span>
+        );
+    };
+
+    const getMovimientoBadge = (tipo: string) => {
+        const styles: Record<string, { bg: string; color: string }> = {
+            entrada: { bg: '#10B981', color: 'white' },
+            salida: { bg: '#EF4444', color: 'white' },
+            ajuste: { bg: '#F59E0B', color: 'white' }
+        };
+        const style = styles[tipo];
+        return (
+            <span style={{
+                background: style.bg,
+                color: style.color,
+                padding: '0.25rem 0.75rem',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'capitalize'
+            }}>
+                {tipo}
+            </span>
+        );
+    };
+
+    const alertas = inventory.filter(i => i.estado === 'bajo' || i.estado === 'agotado').length;
+    const productosActivos = inventory.length;
 
     return (
-        <div className="inventario-page">
-            <div className="page-header">
+        <div style={{ padding: '1.5rem' }}>
+            {/* Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
                 <div>
-                    <h1>Inventario</h1>
-                    <p>Control de stock y movimientos de insumos y productos físicos</p>
+                    <h1 style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 700,
+                        color: '#1f2937',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem'
+                    }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        </svg>
+                        Control de Inventario
+                    </h1>
+                    <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                        Gestiona el stock y movimientos de productos
+                    </p>
                 </div>
-                <button className="btn-primary" onClick={() => setModalOpen(true)}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-                    Ajustar Stock
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button style={{
+                        padding: '0.75rem 1rem',
+                        background: '#10B981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Registrar Entrada
+                    </button>
+                    <button style={{
+                        padding: '0.75rem 1rem',
+                        background: '#EF4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Registrar Salida
+                    </button>
+                </div>
+            </div>
+
+            {/* KPI Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    borderLeft: '4px solid #3B82F6'
+                }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Productos</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#3B82F6' }}>{productosActivos}</div>
+                </div>
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    borderLeft: '4px solid #EF4444'
+                }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Alertas Stock</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#EF4444' }}>{alertas}</div>
+                </div>
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    borderLeft: '4px solid #10B981'
+                }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Entradas Hoy</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#10B981' }}>12</div>
+                </div>
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    borderLeft: '4px solid #F59E0B'
+                }}>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Salidas Hoy</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#F59E0B' }}>8</div>
+                </div>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <button
+                    onClick={() => setActiveTab('stock')}
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        background: activeTab === 'stock' ? '#3B82F6' : 'white',
+                        color: activeTab === 'stock' ? 'white' : '#6b7280',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                    }}
+                >
+                    Stock Actual
+                </button>
+                <button
+                    onClick={() => setActiveTab('movimientos')}
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        background: activeTab === 'movimientos' ? '#3B82F6' : 'white',
+                        color: activeTab === 'movimientos' ? 'white' : '#6b7280',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                    }}
+                >
+                    Movimientos
                 </button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card ok">
-                    <span className="icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                    </span>
-                    <div className="stat-info">
-                        <span className="value">{inventario.filter(i => i.status === 'ok').length}</span>
-                        <span className="label">Stock OK</span>
-                    </div>
-                </div>
-                <div className="stat-card low">
-                    <span className="icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                    </span>
-                    <div className="stat-info">
-                        <span className="value">{inventario.filter(i => i.status === 'low').length}</span>
-                        <span className="label">Stock Bajo</span>
-                    </div>
-                </div>
-                <div className="stat-card out">
-                    <span className="icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
-                    </span>
-                    <div className="stat-info">
-                        <span className="value">{inventario.filter(i => i.status === 'out').length}</span>
-                        <span className="label">Agotados</span>
-                    </div>
-                </div>
+            {/* Search */}
+            <div style={{ marginBottom: '1rem', maxWidth: '400px' }}>
+                <input
+                    type="text"
+                    placeholder="Buscar producto..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem'
+                    }}
+                />
             </div>
 
-            <div className="content-grid-inv">
-                {/* Tabla Stock */}
-                <div className="panel stock-panel">
-                    <h3>Stock Actual</h3>
-                    <table className="inv-table">
+            {/* Stock Table */}
+            {activeTab === 'stock' && (
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    overflow: 'hidden'
+                }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr>
-                                <th>SKU</th>
-                                <th>Producto</th>
-                                <th>Stock</th>
-                                <th>Mínimo</th>
-                                <th>Estado</th>
+                            <tr style={{ background: '#f9fafb' }}>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>PRODUCTO</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>SKU</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>STOCK ACTUAL</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>MÍNIMO</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>MÁXIMO</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>ESTADO</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {inventario.map(item => (
-                                <tr key={item.id}>
-                                    <td className="font-mono text-sm">{item.sku}</td>
-                                    <td className="font-medium">{item.nombre}</td>
-                                    <td className="font-bold">{item.stock}</td>
-                                    <td className="text-gray-500">{item.minimo}</td>
-                                    <td>
-                                        <span className={`status-badge ${item.status}`}>
-                                            {item.status === 'ok' ? 'OK' : item.status === 'low' ? 'Stock Bajo' : 'Agotado'}
-                                        </span>
+                            {inventory.filter(i => i.producto.toLowerCase().includes(searchTerm.toLowerCase())).map(item => (
+                                <tr key={item.id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{item.producto}</td>
+                                    <td style={{ padding: '1rem', color: '#7C3AED', fontWeight: 500 }}>{item.sku}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 700, fontSize: '1.1rem' }}>{item.stockActual}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>{item.stockMinimo}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>{item.stockMaximo}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center' }}>{getEstadoBadge(item.estado)}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                        <button style={{
+                                            padding: '0.5rem 1rem',
+                                            background: '#3B82F6',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer'
+                                        }}>
+                                            Ajustar
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-
-                {/* Movimientos */}
-                <div className="panel history-panel">
-                    <h3>Últimos Movimientos</h3>
-                    <div className="timeline">
-                        {movimientos.map(mov => (
-                            <div key={mov.id} className="timeline-item">
-                                <div className="tm-qty">
-                                    <span className={mov.cantidad > 0 ? 'plus' : 'minus'}>
-                                        {mov.cantidad > 0 ? `+${mov.cantidad}` : mov.cantidad}
-                                    </span>
-                                </div>
-                                <div className="tm-content">
-                                    <p className="tm-prod">{mov.producto}</p>
-                                    <div className="tm-meta">
-                                        <span className="tm-type">{mov.tipo}</span>
-                                        <span className="tm-date">{mov.fecha}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Modal Simple (Visual) */}
-            {modalOpen && (
-                <div className="modal-overlay" onClick={() => setModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h2>Ajustar Stock Manual</h2>
-                        <div className="form-group">
-                            <label>Producto / SKU</label>
-                            <input type="text" placeholder="Buscar..." />
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Cantidad</label>
-                                <input type="number" />
-                            </div>
-                            <div className="form-group">
-                                <label>Tipo</label>
-                                <select><option>Entrada</option><option>Salida</option></select>
-                            </div>
-                        </div>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancelar</button>
-                            <button className="btn-primary" onClick={() => { alert('Stock actualizado'); setModalOpen(false); }}>Guardar</button>
-                        </div>
-                    </div>
-                </div>
             )}
 
-            <style jsx>{`
-                .inventario-page { max-width: 1400px; }
-                .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-                .page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
-                .page-header p { color: #64748b; }
-                .btn-primary { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #e94560; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
-                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; max-width: 800px; }
-                .stat-card { background: #fff; padding: 1rem 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
-                .stat-card .icon { padding: 0.5rem; border-radius: 8px; display: flex; }
-                .stat-card.ok .icon { background: #ecfdf5; color: #10b981; }
-                .stat-card.low .icon { background: #fffbeb; color: #f59e0b; }
-                .stat-card.out .icon { background: #fef2f2; color: #ef4444; }
-                .stat-info { display: flex; flex-direction: column; }
-                .stat-info .value { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; line-height: 1; }
-                .stat-info .label { font-size: 0.85rem; color: #64748b; }
-
-                .content-grid-inv { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-                .panel { background: #fff; border-radius: 12px; padding: 1.5rem; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-                .panel h3 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.25rem; }
-
-                .inv-table { width: 100%; border-collapse: collapse; }
-                .inv-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
-                .inv-table td { padding: 1rem 0; border-bottom: 1px solid #f1f5f9; color: #334155; }
-                .font-mono { font-family: monospace; }
-                .font-bold { font-weight: 700; }
-                .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-                .status-badge.ok { background: #ecfdf5; color: #10b981; }
-                .status-badge.low { background: #fffbeb; color: #f59e0b; }
-                .status-badge.out { background: #fef2f2; color: #ef4444; }
-
-                .timeline { display: flex; flex-direction: column; gap: 1rem; }
-                .timeline-item { display: flex; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f8fafc; }
-                .tm-qty { font-weight: 700; font-size: 0.9rem; min-width: 40px; }
-                .tm-qty .plus { color: #10b981; }
-                .tm-qty .minus { color: #ef4444; }
-                .tm-prod { font-size: 0.9rem; font-weight: 500; color: #1a1a2e; margin-bottom: 0.25rem; }
-                .tm-meta { display: flex; gap: 0.5rem; font-size: 0.75rem; color: #94a3b8; }
-                .tm-type { background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600; }
-
-                .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-                .modal-content { background: #fff; padding: 2rem; border-radius: 12px; width: 100%; max-width: 400px; }
-                .form-group { margin-bottom: 1rem; }
-                .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b; }
-                .form-group input, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; }
-                .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
-                .btn-cancel { background: none; border: none; color: #64748b; cursor: pointer; }
-            `}</style>
+            {/* Movements Table */}
+            {activeTab === 'movimientos' && (
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    overflow: 'hidden'
+                }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ background: '#f9fafb' }}>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>FECHA</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>TIPO</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>PRODUCTO</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>CANTIDAD</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem' }}>MOTIVO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {movements.map(mov => (
+                                <tr key={mov.id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                                    <td style={{ padding: '1rem', color: '#6b7280' }}>{mov.fecha}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center' }}>{getMovimientoBadge(mov.tipo)}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{mov.producto}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 600 }}>
+                                        <span style={{ color: mov.tipo === 'entrada' ? '#10B981' : mov.tipo === 'salida' ? '#EF4444' : '#F59E0B' }}>
+                                            {mov.tipo === 'entrada' ? '+' : mov.tipo === 'salida' ? '-' : ''}{mov.cantidad}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '1rem', color: '#6b7280' }}>{mov.motivo}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }
