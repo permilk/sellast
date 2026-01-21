@@ -250,7 +250,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 .logo-icon { width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.15rem; }
                 .logo-text { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
                 
-                .sidebar-content { flex: 1; overflow-y: auto; padding: 1rem 0.75rem; }
+                .sidebar-content { 
+                    flex: 1; 
+                    overflow-y: auto; 
+                    padding: 1rem 0.75rem; 
+                    min-height: 0; /* Crucial for nested flex scrolling */
+                    display: flex;
+                    flex-direction: column;
+                }
                 
                 .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; }
                 .nav-group { margin-bottom: 0.25rem; }
