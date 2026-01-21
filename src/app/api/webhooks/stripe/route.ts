@@ -110,7 +110,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
             },
         });
 
-        // 2. Registrar transacción contable
+        // 2. Registrar transacción contable (Placeholder - Transaction model not yet in schema)
+        /*
         await prisma.transaction.create({
             data: {
                 orderId: order.id,
@@ -120,9 +121,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
                 reference: session.payment_intent as string,
             },
         });
+        */
 
         // 3. Decrementar inventario
         for (const item of order.items) {
+            // Registrar movimiento de inventario (AuditLog) - Get product before decrement for previousQty
+            const productBeforeUpdate = await prisma.product.findUnique({
+                where: { id: item.productId },
+            });
+
             await prisma.product.update({
                 where: { id: item.productId },
                 data: {
@@ -132,21 +139,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
                 },
             });
 
-            // Registrar movimiento de inventario
-            const product = await prisma.product.findUnique({
-                where: { id: item.productId },
-            });
-
-            await prisma.inventoryLog.create({
+            await prisma.auditLog.create({
                 data: {
-                    productId: item.productId,
-                    type: 'SALE_WEB',
-                    quantity: -item.quantity,
-                    reason: `Venta web - Pedido #${order.orderNumber}`,
-                    reference: order.id,
-                    previousQty: (product?.stock ?? 0) + item.quantity,
-                    newQty: product?.stock ?? 0,
-                    createdBy: 'system',
+                    entity: 'Product',
+                    entityId: item.productId,
+                    action: 'SALE_WEB',
+                    userId: 'admin', // System or User ID if available
+                    details: {
+                        quantity: -item.quantity,
+                        reason: `Venta web - Pedido #${order.orderNumber}`,
+                        reference: order.id,
+                        newQty: (productBeforeUpdate?.stock ?? 0) - item.quantity, // Calculate new quantity
+                    },
                 },
             });
         }
@@ -190,6 +194,7 @@ async function handleRefund(charge: Stripe.Charge) {
             },
         });
 
+        /*
         await prisma.transaction.create({
             data: {
                 orderId: order.id,
@@ -199,6 +204,7 @@ async function handleRefund(charge: Stripe.Charge) {
                 reference: charge.id,
             },
         });
+        */
     }
 }
 
@@ -211,14 +217,14 @@ interface OrderWithRelations {
     orderNumber: string;
     total: number | { toNumber: () => number };
     user: {
-        name: string;
+        name: string | null;
         email: string;
-        phone: string | null;
+        // phone: string | null; // Removed phone as it is not on User model
     };
     address: {
         street: string;
-        extNumber: string;
-        colony: string;
+        extNumber: string | null;
+        colony: string | null;
         city: string;
         state: string;
         zipCode: string;
@@ -240,32 +246,34 @@ async function sendOrderNotifications(order: OrderWithRelations) {
         currency: 'MXN',
     }).format(totalNum);
 
-    // 1. Enviar WhatsApp si hay teléfono
+    // 1. Enviar WhatsApp si hay teléfono (Disabled for now)
+    /*
     if (order.user.phone) {
         await sendWhatsAppMessage({
             to: order.user.phone,
             body: buildOrderConfirmationMessage({
-                customerName: order.user.name,
+                customerName: order.user.name || 'Cliente',
                 orderNumber: order.orderNumber,
                 total: formattedTotal,
             }),
         });
     }
+    */
 
     // 2. Enviar Email
     const shippingAddress = [
         order.address.street,
-        `#${order.address.extNumber}`,
-        order.address.colony,
+        order.address.extNumber ? `#${order.address.extNumber}` : '',
+        order.address.colony || '',
         `${order.address.city}, ${order.address.state}`,
         `C.P. ${order.address.zipCode}`,
-    ].join('<br>');
+    ].filter(Boolean).join('<br>');
 
     await sendEmail({
         to: order.user.email,
         subject: `✅ Pedido #${order.orderNumber} Confirmado`,
         html: buildOrderConfirmationEmail({
-            customerName: order.user.name,
+            customerName: order.user.name || 'Cliente',
             orderNumber: order.orderNumber,
             orderDate: new Date().toLocaleDateString('es-MX'),
             items: order.items.map(item => ({
