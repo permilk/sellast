@@ -70,15 +70,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
         // Si el stock cambia, registrar en inventario
         if (stock !== undefined && stock !== existing.stock) {
-            await prisma.inventoryLog.create({
+            await prisma.auditLog.create({
                 data: {
-                    productId: id,
-                    type: 'ADJUSTMENT',
-                    quantity: stock - existing.stock,
-                    reason: 'Ajuste manual desde admin',
-                    previousQty: existing.stock,
-                    newQty: stock,
-                    createdBy: 'admin', // TODO: obtener del usuario autenticado
+                    entity: 'Product',
+                    entityId: id,
+                    action: 'STOCK_ADJUSTMENT',
+                    userId: 'admin', // TODO: Get real user ID
+                    details: {
+                        previousQty: existing.stock,
+                        newQty: stock,
+                        reason: 'Ajuste manual desde admin',
+                        change: stock - existing.stock
+                    }
                 },
             });
         }
