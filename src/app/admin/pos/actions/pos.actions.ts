@@ -1,3 +1,5 @@
+'use server';
+
 import prisma from '@/lib/prisma';
 import { createProductAction } from '@/app/admin/productos/actions/product.actions';
 import { ProductService } from '@/services/product.service';
