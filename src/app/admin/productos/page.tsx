@@ -45,7 +45,7 @@ export default function ProductosPage() {
         <div className="productos-page">
             <div className="page-header">
                 <div className="title-section">
-                    <h1>Productos <span className="divider">|</span> <span className="breadcrumb-icon">🏠</span> <span className="breadcrumb-chevron">{'>'}</span> <span className="breadcrumb-current">Buscador</span></h1>
+                    <h1>Productos</h1>
                 </div>
                 <div className="header-actions">
                     <button className="btn-cyan">
