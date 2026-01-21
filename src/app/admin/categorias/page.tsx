@@ -224,10 +224,10 @@ export default function CategoriasPage() {
                     color: #D97706; /* Amber 600 */
                 }
                 
-                /* Detail: Blue */
+                /* View: Cyan - igual que Productos */
                 .action-btn.detail {
-                    background-color: #DBEAFE; /* Blue 100 */
-                    color: #2563EB; /* Blue 600 */
+                    background-color: #CFFAFE; /* Cyan 100 */
+                    color: #06B6D4; /* Cyan 500 */
                 }
 
                 /* Delete: Red/Pink */

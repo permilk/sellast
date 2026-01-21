@@ -128,7 +128,7 @@ export default function ClientesPage() {
                         onClick={handleAddCustomer}
                         style={{
                             padding: '0.75rem 1rem',
-                            background: '#1f2937',
+                            background: '#10B981',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
@@ -221,23 +221,17 @@ export default function ClientesPage() {
                                     $ {customer.totalCompras.toFixed(2)}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
                                         <button
                                             onClick={() => setShowAccountsModal(true)}
                                             style={{
-                                                width: '36px',
-                                                height: '36px',
-                                                background: '#06B6D4',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
+                                                width: '32px', height: '32px', background: '#CFFAFE', border: 'none',
+                                                borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center'
                                             }}
                                             title="Ver cuentas"
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth="2">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
@@ -245,19 +239,13 @@ export default function ClientesPage() {
                                         <button
                                             onClick={() => handleEditCustomer(customer)}
                                             style={{
-                                                width: '36px',
-                                                height: '36px',
-                                                background: '#F59E0B',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
+                                                width: '32px', height: '32px', background: '#FEF3C7', border: 'none',
+                                                borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center'
                                             }}
                                             title="Editar"
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2">
                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                             </svg>
@@ -265,19 +253,13 @@ export default function ClientesPage() {
                                         <button
                                             onClick={() => handleDeleteCustomer(customer.id)}
                                             style={{
-                                                width: '36px',
-                                                height: '36px',
-                                                background: '#EF4444',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
+                                                width: '32px', height: '32px', background: '#FEE2E2', border: 'none',
+                                                borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                alignItems: 'center', justifyContent: 'center'
                                             }}
                                             title="Eliminar"
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
                                                 <polyline points="3 6 5 6 21 6" />
                                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                             </svg>

@@ -288,18 +288,48 @@ export default function InventarioPage() {
                                     <td style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>{item.stockMaximo}</td>
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>{getEstadoBadge(item.estado)}</td>
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                        <button style={{
-                                            padding: '0.5rem 1rem',
-                                            background: '#3B82F6',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 500,
-                                            cursor: 'pointer'
-                                        }}>
-                                            Ajustar
-                                        </button>
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                                            <button
+                                                onClick={() => alert(`Ver detalles de: ${item.producto}`)}
+                                                style={{
+                                                    width: '32px', height: '32px', background: '#CFFAFE', border: 'none',
+                                                    borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                    alignItems: 'center', justifyContent: 'center'
+                                                }}
+                                                title="Ver"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth="2">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => alert(`Editar: ${item.producto}`)}
+                                                style={{
+                                                    width: '32px', height: '32px', background: '#FEF3C7', border: 'none',
+                                                    borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                    alignItems: 'center', justifyContent: 'center'
+                                                }}
+                                                title="Editar"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => alert(`Ajustar stock de: ${item.producto}`)}
+                                                style={{
+                                                    width: '32px', height: '32px', background: '#DBEAFE', border: 'none',
+                                                    borderRadius: '6px', cursor: 'pointer', display: 'flex',
+                                                    alignItems: 'center', justifyContent: 'center'
+                                                }}
+                                                title="Ajustar Stock"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2">
+                                                    <path d="M12 2v20M2 12h20" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
