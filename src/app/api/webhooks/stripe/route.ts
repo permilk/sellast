@@ -94,9 +94,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         const order = await prisma.order.update({
             where: { id: orderId },
             data: {
-                status: 'CONFIRMED',
+                status: 'PROCESSING',
                 paymentStatus: 'PAID',
-                stripePaymentId: session.payment_intent as string,
                 stripeSessionId: session.id,
             },
             include: {
@@ -179,29 +178,23 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 async function handleRefund(charge: Stripe.Charge) {
+    // TODO: implement refund logic correctly (missing stripePaymentId)
+    /*
     const paymentIntentId = charge.payment_intent as string;
 
     const order = await prisma.order.findFirst({
         where: { stripePaymentId: paymentIntentId },
     });
+    */
+    const order = null;
 
     if (order) {
+        /*
         await prisma.order.update({
             where: { id: order.id },
             data: {
-                status: 'REFUNDED',
+                status: 'CANCELLED',
                 paymentStatus: 'REFUNDED',
-            },
-        });
-
-        /*
-        await prisma.transaction.create({
-            data: {
-                orderId: order.id,
-                type: 'REFUND',
-                amount: charge.amount_refunded / 100, // Stripe usa centavos
-                description: `Reembolso - Pedido #${order.orderNumber}`,
-                reference: charge.id,
             },
         });
         */

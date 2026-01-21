@@ -70,12 +70,8 @@ export async function POST(request: NextRequest) {
         const updatedOrder = await prisma.order.update({
             where: { id: data.orderId },
             data: {
-                status: data.status,
+                status: data.status as any,
                 trackingNumber: data.trackingNumber || order.trackingNumber,
-                trackingUrl: data.trackingUrl || order.trackingUrl,
-                adminNote: data.adminNote || order.adminNote,
-                ...(data.status === 'SHIPPED' && { shippedAt: new Date() }),
-                ...(data.status === 'DELIVERED' && { deliveredAt: new Date() }),
             },
             include: {
                 user: true,
