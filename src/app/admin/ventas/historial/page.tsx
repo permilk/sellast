@@ -102,19 +102,21 @@ export default function HistorialVentasPage() {
                         Consulta todas las transacciones realizadas
                     </p>
                 </div>
-                <button style={{
-                    padding: '0.75rem 1rem',
-                    background: '#10B981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                }}>
+                <button
+                    onClick={() => alert('Exportando datos...')}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        background: '#06B6D4',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7 10 12 15 17 10" />
@@ -294,12 +296,13 @@ export default function HistorialVentasPage() {
                                 </td>
                                 <td style={{ padding: '1rem', color: '#6b7280' }}>{sale.metodoPago}</td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
                                         <button
+                                            onClick={() => alert(`Ver ticket: ${sale.folio}`)}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
-                                                background: '#06B6D4',
+                                                background: '#CFFAFE',
                                                 border: 'none',
                                                 borderRadius: '6px',
                                                 cursor: 'pointer',
@@ -309,16 +312,17 @@ export default function HistorialVentasPage() {
                                             }}
                                             title="Ver ticket"
                                         >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth="2">
                                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                                 <circle cx="12" cy="12" r="3" />
                                             </svg>
                                         </button>
                                         <button
+                                            onClick={() => alert(`Reimprimir: ${sale.folio}`)}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
-                                                background: '#3B82F6',
+                                                background: '#DBEAFE',
                                                 border: 'none',
                                                 borderRadius: '6px',
                                                 cursor: 'pointer',
@@ -328,18 +332,19 @@ export default function HistorialVentasPage() {
                                             }}
                                             title="Reimprimir"
                                         >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2">
                                                 <polyline points="6 9 6 2 18 2 18 9" />
                                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                                                 <rect x="6" y="14" width="12" height="8" />
                                             </svg>
                                         </button>
-                                        {sale.estado === 'completada' && (
+                                        {sale.estado !== 'anulada' && (
                                             <button
+                                                onClick={() => alert(`Anular venta: ${sale.folio}`)}
                                                 style={{
                                                     width: '32px',
                                                     height: '32px',
-                                                    background: '#EF4444',
+                                                    background: '#FEE2E2',
                                                     border: 'none',
                                                     borderRadius: '6px',
                                                     cursor: 'pointer',
@@ -349,10 +354,9 @@ export default function HistorialVentasPage() {
                                                 }}
                                                 title="Anular"
                                             >
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                                    <circle cx="12" cy="12" r="10" />
-                                                    <line x1="15" y1="9" x2="9" y2="15" />
-                                                    <line x1="9" y1="9" x2="15" y2="15" />
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                                 </svg>
                                             </button>
                                         )}

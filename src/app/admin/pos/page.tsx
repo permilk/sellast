@@ -354,8 +354,8 @@ export default function POSSalesPage() {
                                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                                                 </svg>
                                             </button>
-                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>S/ {item.price.toFixed(2)} c/u</div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#3B82F6' }}>S/ {(item.price * item.cantidad).toFixed(2)}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>$ {item.price.toFixed(2)} c/u</div>
+                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#3B82F6' }}>$ {(item.price * item.cantidad).toFixed(2)}</div>
                                         </div>
                                     </div>
                                 ))
@@ -374,7 +374,7 @@ export default function POSSalesPage() {
                                     <button style={{
                                         padding: '0.35rem 0.75rem', background: '#E5E7EB', color: '#6B7280',
                                         border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
-                                    }}>S/</button>
+                                    }}>$</button>
                                 </div>
                             </div>
                             <input

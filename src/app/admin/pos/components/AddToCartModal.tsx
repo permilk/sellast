@@ -96,7 +96,7 @@ export default function AddToCartModal({ isOpen, product, onClose, onAdd }: AddT
                         <div className="pos-add-cart-info">
                             <h4>{product.name}</h4>
                             <p>Código: {product.sku || 'N/A'}</p>
-                            <span className="price">S/ {product.price.toFixed(2)}</span>
+                            <span className="price">$ {product.price.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -112,7 +112,7 @@ export default function AddToCartModal({ isOpen, product, onClose, onAdd }: AddT
                                 }
                             }}
                         >
-                            <option value="retail">Retail S/ {product.price.toFixed(2)}</option>
+                            <option value="retail">Retail $ {product.price.toFixed(2)}</option>
                             <option value="mayoreo">Mayoreo</option>
                             <option value="especial">Precio Especial</option>
                         </select>
@@ -168,7 +168,7 @@ export default function AddToCartModal({ isOpen, product, onClose, onAdd }: AddT
                     {/* Subtotal */}
                     <div className="pos-subtotal">
                         <label>Subtotal</label>
-                        <span>S/ {subtotal.toFixed(2)}</span>
+                        <span>$ {subtotal.toFixed(2)}</span>
                     </div>
                 </div>
 
