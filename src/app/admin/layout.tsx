@@ -365,8 +365,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     font-weight: 500; 
                 }
                 
-                .nav-item.header { font-weight: 500; justify-content: space-between; color: var(--text-main); }
-                .nav-item.header:hover { background: transparent; } /* Header doesn't need hover bg */
+                .nav-item.header { font-weight: 500; justify-content: space-between; color: var(--sidebar-text); }
+                .nav-item.header:hover { background: var(--sidebar-hover); color: var(--sidebar-text); }
 
                 .nav-chevron { transition: transform 0.2s; opacity: 0.6; }
                 details[open] .nav-chevron { transform: rotate(180deg); }
