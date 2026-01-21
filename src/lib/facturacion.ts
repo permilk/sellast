@@ -221,7 +221,7 @@ export async function crearFactura(orderId: string, datosFactura: DatosFactura):
         }
 
         // Buscar o crear perfil de facturación
-        let invoiceProfile = await prisma.invoiceProfile.findUnique({
+        let invoiceProfile = await prisma.invoiceProfile.findFirst({
             where: { rfc: datosFactura.rfc },
         });
 
