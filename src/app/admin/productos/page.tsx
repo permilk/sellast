@@ -44,30 +44,69 @@ export default function ProductosPage() {
     return (
         <div className="productos-page">
             <div className="page-header">
-                {/* ... Header igual al anterior ... */}
                 <div className="title-section">
-                    <h1>Productos</h1>
-                    <p>Gestiona el inventario y catálogo de venta</p>
+                    <h1>Productos <span className="divider">|</span> <span className="breadcrumb-icon">🏠</span> <span className="breadcrumb-chevron">{'>'}</span> <span className="breadcrumb-current">Buscador</span></h1>
                 </div>
-                <Link href="/admin/productos/nuevo" className="btn-primary">
-                    Nuevo Producto
-                </Link>
+                <div className="header-actions">
+                    <button className="btn-cyan">
+                        <span>+</span> Exportar
+                    </button>
+                    <Link href="/admin/productos/nuevo" className="btn-cyan">
+                        <span>+</span> Registrar
+                    </Link>
+                </div>
             </div>
 
-            <div className="actions-bar">
-                <div className="search-group">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                    <input
-                        type="search"
-                        placeholder="Buscar por nombre o código..."
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                    />
+            {/* Search Card */}
+            <div className="search-card">
+                <div className="search-grid">
+                    <div className="form-group main-input">
+                        <label>NOMBRE</label>
+                        <input
+                            type="text"
+                            placeholder="Nombre"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            className="input-field"
+                        />
+                    </div>
+
+                    <div className="form-group status-input">
+                        <label>ESTADO</label>
+                        <select className="select-field">
+                            <option>Todos</option>
+                            <option>Activo</option>
+                            <option>Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>LÍNEA</label>
+                        <select className="select-field">
+                            <option>Todas</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>CATEGORÍA</label>
+                        <select className="select-field">
+                            <option>Todos</option>
+                            {/* Map categories here */}
+                        </select>
+                    </div>
+
+                    <div className="form-actions">
+                        <button className="btn-search">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Buscar
+                        </button>
+                    </div>
                 </div>
-                {/* ... Filters ... */}
             </div>
 
+            {/* Table Area (Cleaned up) */}
             <div className="table-container">
+                {/* ... Table content remains same but cleaner container ... */}
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Cargando productos...</div>
                 ) : (
@@ -106,7 +145,6 @@ export default function ProductosPage() {
                                     </td>
                                     <td>
                                         <div className="actions-cell">
-                                            {/* Actions... */}
                                             <button className="action-icon view">👁</button>
                                         </div>
                                     </td>
@@ -114,7 +152,7 @@ export default function ProductosPage() {
                             )) : (
                                 <tr>
                                     <td colSpan={7} className="text-center p-8 text-gray-500">
-                                        No se encontraron productos. ¡Crea el primero!
+                                        No se encontraron productos.
                                     </td>
                                 </tr>
                             )}
@@ -123,47 +161,134 @@ export default function ProductosPage() {
                 )}
             </div>
 
-            {/* Pagination... */}
+            <div className="page-footer">
+                <button className="btn-import">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Importar
+                </button>
+            </div>
+
             <style jsx>{`
-                /* ... Estilos Enterprise (mismos que antes) ... */
-                .productos-page { max-width: 100%; }
+                .productos-page { width: 100%; font-family: 'Inter', sans-serif; color: #5f6c7b; }
                 
-                .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-                .title-section h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.25rem; }
-                .title-section p { color: #64748b; font-size: 0.9rem; }
+                /* HEADER */
+                .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+                .title-section h1 { font-size: 1.25rem; font-weight: 600; color: #5f6c7b; display: flex; align-items: center; gap: 0.5rem; }
+                .divider { color: #cbd5e1; font-weight: 300; }
+                .breadcrumb-icon { font-size: 1rem; opacity: 0.5; }
+                .breadcrumb-chevron { font-size: 0.8rem; color: #94a3b8; }
+                .breadcrumb-current { color: #3b82f6; font-weight: 400; font-size: 1rem; }
                 
-                .btn-primary { background: #2563eb; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
-                .btn-primary:hover { background: #1d4ed8; }
+                .header-actions { display: flex; gap: 10px; }
                 
-                .actions-bar { background: #fff; padding: 1rem; border-radius: 12px 12px 0 0; border: 1px solid #e2e8f0; border-bottom: none; display: flex; gap: 1rem; align-items: center; justify-content: space-between; }
+                /* BUTTONS */
+                .btn-cyan {
+                    background-color: #5BC0DE; /* Cyan Mockup Color */
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    transition: opacity 0.2s;
+                }
+                .btn-cyan:hover { opacity: 0.9; }
                 
-                .search-group { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 8px; flex: 1; max-width: 400px; }
-                .search-group input { border: none; background: none; outline: none; width: 100%; font-size: 0.95rem; }
+                .btn-search {
+                    background-color: #5BC0DE;
+                    color: white;
+                    border: none;
+                    padding: 10px 24px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    font-size: 0.95rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
                 
-                .table-container { background: #fff; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; overflow: hidden; }
+                .btn-import {
+                    background-color: #2ECC71; /* Green Mockup Color */
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                }
+
+                /* SEARCH CARD - Light Theme Specific */
+                .search-card {
+                    background: white;
+                    border-radius: 4px;
+                    padding: 24px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
+                }
                 
+                .search-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr; /* 2 Columns */
+                    gap: 20px 40px; /* Row gap, Col gap */
+                    align-items: end;
+                }
+                
+                .form-group label {
+                    display: block;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    color: #64748b;
+                    margin-bottom: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                
+                .input-field, .select-field {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 4px;
+                    font-size: 0.95rem;
+                    color: #334155;
+                    outline: none;
+                    background: #fff;
+                    transition: border-color 0.2s;
+                }
+                .input-field:focus, .select-field:focus { border-color: #5BC0DE; }
+                
+                .main-input { grid-column: 1 / 2; }
+                .status-input { grid-column: 2 / 3; }
+                
+                .form-actions {
+                    grid-column: 2 / 3;
+                    display: flex;
+                    justify-content: flex-start; /* Aligned left within the column mostly */
+                }
+
+                /* TABLE Styles */
+                .table-container { background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
                 .enterprise-table { width: 100%; border-collapse: collapse; }
-                .enterprise-table th { text-align: left; padding: 1rem 1.5rem; background: #fff; border-bottom: 2px solid #f1f5f9; color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-                .enterprise-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.9rem; vertical-align: middle; }
-                .enterprise-table tr:hover td { background: #f8fafc; }
+                .enterprise-table th { text-align: left; padding: 12px 16px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+                .enterprise-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #334155; }
                 
-                .font-mono { font-family: monospace; }
-                .text-gray { color: #64748b; }
-                .font-medium { font-weight: 600; color: #1e293b; }
+                .page-footer { display: flex; justify-content: flex-end; margin-top: 20px; }
                 
-                .stock-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600; }
-                .stock-badge.empty { color: #ef4444; background: #fef2f2; padding: 0.1rem 0.5rem; border-radius: 4px; border: 1px solid #fecaca; }
-                .stock-badge.low { color: #ea580c; background: #fff7ed; padding: 0.1rem 0.5rem; border-radius: 4px; border: 1px solid #fed7aa; }
+                /* Badges */
+                .status-pill.active { color: #16a34a; font-weight: 600; }
+                .status-pill.inactive { color: #dc2626; font-weight: 600; }
                 
-                .status-pill { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-                .status-pill.active { background: #166534; color: #fff; }
-                .status-pill.inactive { background: #ef4444; color: #fff; }
-                
-                .actions-cell { display: flex; gap: 0.5rem; }
-                .action-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: none; border-radius: 6px; cursor: pointer; color: #64748b; transition: all 0.2s; }
-                .action-icon:hover { background: #f1f5f9; }
-                .p-8 { padding: 2rem; }
-                .text-center { text-align: center; }
+                .stock-badge.empty { color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+                .stock-badge.low { color: #d97706; background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
             `}</style>
         </div>
     );
