@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
             data.shippingMethod,
             {
                 street: address.street,
-                extNumber: address.extNumber,
-                colony: address.colony,
+                extNumber: address.extNumber || '',
+                colony: address.colony || '',
                 city: address.city,
                 state: address.state,
                 zipCode: address.zipCode,
