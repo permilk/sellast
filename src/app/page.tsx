@@ -64,46 +64,6 @@ export default function AuthLoginPage() {
                                 <div className="stat-label">Soporte</div>
                             </div>
                         </div>
-
-                        <div className="features">
-                            <div className="feature">
-                                <div className="feature-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                                    </svg>
-                                </div>
-                                <div className="feature-text">
-                                    <strong>Ventas en tiempo real</strong>
-                                    <span>Procesa pagos y genera tickets al instante</span>
-                                </div>
-                            </div>
-                            <div className="feature">
-                                <div className="feature-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                                        <line x1="12" y1="22.08" x2="12" y2="12" />
-                                    </svg>
-                                </div>
-                                <div className="feature-text">
-                                    <strong>Control de inventario</strong>
-                                    <span>Stock automático y alertas de reorden</span>
-                                </div>
-                            </div>
-                            <div className="feature">
-                                <div className="feature-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <line x1="18" y1="20" x2="18" y2="10" />
-                                        <line x1="12" y1="20" x2="12" y2="4" />
-                                        <line x1="6" y1="20" x2="6" y2="14" />
-                                    </svg>
-                                </div>
-                                <div className="feature-text">
-                                    <strong>Reportes detallados</strong>
-                                    <span>Analítica de ventas y productos</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="branding-footer">
