@@ -423,8 +423,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 .user-name { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
                 .user-role { font-size: 0.75rem; color: var(--text-muted); }
 
-                /* MAIN CONTENT */
-                .main-content { flex: 1; margin-left: 240px; display: flex; flex-direction: column; width: 100%; background: var(--bg-page); }
+                /* MAIN CONTENT - HYBRID LIGHT THEME OVERRIDE */
+                .main-content { 
+                    flex: 1; 
+                    margin-left: 240px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    width: 100%; 
+                    
+                    /* Override Global Dark Variables locally for the Right Side */
+                    --bg-page: #F8FAFC;     /* Slate 50 (Very light gray/white) */
+                    --bg-panel: #FFFFFF;    /* Pure White Cards */
+                    --bg-hover: #F1F5F9;    /* Slate 100 */
+                    --text-main: #0F172A;   /* Slate 900 (Dark Text) */
+                    --text-muted: #64748B;  /* Slate 500 */
+                    --border: #E2E8F0;      /* Slate 200 */
+                    --border-light: #F1F5F9;
+                    
+                    background: var(--bg-page); 
+                    color: var(--text-main);
+                }
                 
                 .top-bar {
                     height: 64px;
@@ -453,13 +471,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     width: 40px; height: 40px; 
                     border-radius: 12px; 
                     border: 1px solid var(--border); 
-                    background: rgba(255,255,255,0.03); 
+                    background: var(--bg-page); /* Slight contrast on white header */
                     display: flex; align-items: center; justify-content: center; 
                     cursor: pointer; color: var(--text-muted); 
                     position: relative; transition: all 0.2s;
                 }
                 .icon-btn:hover { background: var(--bg-hover); color: var(--text-main); border-color: var(--border-light); }
                 .dot { position: absolute; top: 10px; right: 10px; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+                
+                /* Title Overrides for Light Mode */
+                .main-content h1, .main-content h2, .main-content h3 {
+                    color: var(--text-main) !important;
+                }
                 
                 .btn-store {
                     display: flex;
