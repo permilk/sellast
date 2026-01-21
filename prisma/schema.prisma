@@ -29,6 +29,7 @@ model User {
   cart      CartItem[]
   addresses Address[]
   auditLogs AuditLog[]
+  invoiceProfiles InvoiceProfile[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -261,6 +262,7 @@ model Order {
   couponCode      String?
   customerNote    String?
   stripeSessionId String?
+  invoice         Invoice?
 
   items OrderItem[]
 
@@ -392,4 +394,52 @@ model AuditLog {
 
   details   Json?
   createdAt DateTime @default(now())
+}
+
+// ------------------------------------------
+// FACTURACION (Fiscal)
+// ------------------------------------------
+
+model Invoice {
+  id        String   @id @default(uuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  
+  // Link to profile used
+  invoiceProfileId String?
+  invoiceProfile   InvoiceProfile? @relation(fields: [invoiceProfileId], references: [id])
+
+  uuid      String?  // UUID del SAT
+  xml       String?  // Contenido XML, o URL
+  pdf       String?  // URL PDF
+  status    InvoiceStatus   @default(PENDING)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum InvoiceStatus {
+  PENDING
+  ISSUED
+  CANCELLED
+  ERROR
+}
+
+model InvoiceProfile {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  rfc           String
+  razonSocial   String
+  regimenFiscal String
+  usoCfdi       String
+  codigoPostal  String
+  email         String
+
+  isDefault Boolean @default(false)
+  invoices  Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
