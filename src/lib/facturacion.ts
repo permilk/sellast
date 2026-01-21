@@ -277,9 +277,9 @@ export async function crearFactura(orderId: string, datosFactura: DatosFactura):
                 orderId,
                 invoiceProfileId: invoiceProfile.id,
                 uuid: resultado.uuid,
-                xmlUrl: resultado.xmlUrl,
-                pdfUrl: resultado.pdfUrl,
-                status: 'stamped',
+                xml: resultado.xmlUrl,
+                pdf: resultado.pdfUrl,
+                status: 'ISSUED',
                 stampedAt: new Date(),
             },
         });
