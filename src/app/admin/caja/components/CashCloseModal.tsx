@@ -63,6 +63,264 @@ export default function CashCloseModal({ isOpen, onClose, onConfirm, cajaData }:
 
     if (!isOpen) return null;
 
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Por favor permite ventanas emergentes para imprimir');
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = new Intl.DateTimeFormat('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        }).format(now);
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Cierre de Caja - ${dateStr}</title>
+                <style>
+                    @page { 
+                        size: A4; 
+                        margin: 15mm; 
+                    }
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body { 
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        color: #1f2937;
+                        line-height: 1.5;
+                        padding: 20px;
+                    }
+                    .header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        border-bottom: 2px solid #e5e7eb;
+                        padding-bottom: 15px;
+                        margin-bottom: 20px;
+                    }
+                    .header-left h1 {
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #dc2626;
+                    }
+                    .header-left p {
+                        font-size: 12px;
+                        color: #6b7280;
+                    }
+                    .header-right {
+                        text-align: right;
+                        font-size: 12px;
+                        color: #6b7280;
+                    }
+                    .section {
+                        margin-bottom: 20px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        padding: 15px;
+                    }
+                    .section h3 {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: #374151;
+                        margin-bottom: 12px;
+                        border-bottom: 1px solid #e5e7eb;
+                        padding-bottom: 8px;
+                    }
+                    .row {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 6px 0;
+                        font-size: 13px;
+                    }
+                    .row-label { color: #6b7280; }
+                    .row-value { font-weight: 600; }
+                    .row-green { color: #10b981; }
+                    .row-red { color: #dc2626; }
+                    .row-total {
+                        border-top: 1px solid #e5e7eb;
+                        padding-top: 10px;
+                        margin-top: 5px;
+                        font-weight: 700;
+                    }
+                    .payment-methods {
+                        display: flex;
+                        gap: 20px;
+                    }
+                    .payment-method {
+                        flex: 1;
+                        text-align: center;
+                        padding: 10px;
+                        background: white;
+                        border-radius: 6px;
+                        border: 1px solid #e5e7eb;
+                    }
+                    .payment-method .label {
+                        font-size: 11px;
+                        color: #6b7280;
+                    }
+                    .payment-method .amount {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #1f2937;
+                    }
+                    .difference-box {
+                        text-align: center;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-bottom: 20px;
+                    }
+                    .difference-ok { background: #dcfce7; }
+                    .difference-over { background: #fef3c7; }
+                    .difference-under { background: #fee2e2; }
+                    .difference-label {
+                        font-size: 12px;
+                        color: #6b7280;
+                    }
+                    .difference-amount {
+                        font-size: 24px;
+                        font-weight: 700;
+                    }
+                    .difference-status {
+                        font-size: 12px;
+                        margin-top: 5px;
+                    }
+                    .footer {
+                        margin-top: 30px;
+                        padding-top: 15px;
+                        border-top: 1px solid #e5e7eb;
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .signature-line {
+                        width: 200px;
+                        text-align: center;
+                    }
+                    .signature-line hr {
+                        border: none;
+                        border-top: 1px solid #374151;
+                        margin-bottom: 5px;
+                    }
+                    .signature-line span {
+                        font-size: 11px;
+                        color: #6b7280;
+                    }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="header-left">
+                        <h1>Cierre de Caja</h1>
+                        <p>Sellast | Sistema POS Empresarial</p>
+                    </div>
+                    <div class="header-right">
+                        <div>${dateStr}</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Resumen del Turno</h3>
+                    <div class="row">
+                        <span class="row-label">Saldo Inicial:</span>
+                        <span class="row-value">${formatCurrency(cajaData.saldoInicial)}</span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label row-green">+ Ingresos:</span>
+                        <span class="row-value row-green">${formatCurrency(cajaData.ingresos)}</span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label row-red">- Egresos:</span>
+                        <span class="row-value row-red">${formatCurrency(cajaData.egresos)}</span>
+                    </div>
+                    <div class="row row-total">
+                        <span>Efectivo Esperado:</span>
+                        <span>${formatCurrency(cajaData.efectivoEsperado)}</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Ventas por Método de Pago</h3>
+                    <div class="payment-methods">
+                        <div class="payment-method">
+                            <div class="label">Efectivo</div>
+                            <div class="amount">${formatCurrency(cajaData.ventasEfectivo)}</div>
+                        </div>
+                        <div class="payment-method">
+                            <div class="label">Tarjeta</div>
+                            <div class="amount">${formatCurrency(cajaData.ventasTarjeta)}</div>
+                        </div>
+                        <div class="payment-method">
+                            <div class="label">Transferencia</div>
+                            <div class="amount">${formatCurrency(cajaData.ventasTransferencia)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Arqueo de Caja</h3>
+                    <div class="row">
+                        <span class="row-label">Efectivo Contado:</span>
+                        <span class="row-value">${formatCurrency(efectivoContado)}</span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Efectivo Esperado:</span>
+                        <span class="row-value">${formatCurrency(cajaData.efectivoEsperado)}</span>
+                    </div>
+                </div>
+
+                <div class="difference-box ${diferencia === 0 ? 'difference-ok' : diferencia > 0 ? 'difference-over' : 'difference-under'}">
+                    <div class="difference-label">Diferencia</div>
+                    <div class="difference-amount" style="color: ${diferencia === 0 ? '#10b981' : diferencia > 0 ? '#d97706' : '#dc2626'}">
+                        ${diferencia > 0 ? '+' : ''}${formatCurrency(diferencia)}
+                    </div>
+                    <div class="difference-status">
+                        ${diferencia === 0 ? '✓ Cuadre perfecto' : diferencia > 0 ? 'Sobrante' : 'Faltante'}
+                    </div>
+                </div>
+
+                ${observaciones ? `
+                <div class="section">
+                    <h3>Observaciones</h3>
+                    <p style="font-size: 13px;">${observaciones}</p>
+                </div>
+                ` : ''}
+
+                <div class="footer">
+                    <div class="signature-line">
+                        <hr />
+                        <span>Cajero Responsable</span>
+                    </div>
+                    <div class="signature-line">
+                        <hr />
+                        <span>Supervisor</span>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    };
+
     const calcularDesdeDesglose = () => {
         const total =
             desglose.billetes1000 * 1000 +
@@ -357,7 +615,7 @@ export default function CashCloseModal({ isOpen, onClose, onConfirm, cajaData }:
                     </button>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => window.print()}
+                            onClick={handlePrint}
                             style={{
                                 padding: '0.75rem 1rem',
                                 background: '#f8fafc',
