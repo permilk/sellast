@@ -1,9 +1,8 @@
 // ============================================
 // AUTH MIDDLEWARE - ROUTE PROTECTION
 // ============================================
+import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 // Public routes that don't require authentication
 const publicRoutes = [
@@ -24,8 +23,9 @@ const publicApiRoutes = [
     '/api/webhooks'
 ];
 
-export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+export default auth((req) => {
+    const { pathname } = req.nextUrl;
+    const isLoggedIn = !!req.auth;
 
     // Check if this is a public route
     const isPublicRoute = publicRoutes.some(route => {
@@ -43,20 +43,15 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // For protected routes, check authentication
-    const token = await getToken({
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET || 'sellast-secret-key-change-in-production'
-    });
-
-    if (!token) {
-        const loginUrl = new URL('/auth', request.nextUrl.origin);
+    // For protected routes, require authentication
+    if (!isLoggedIn) {
+        const loginUrl = new URL('/auth', req.nextUrl.origin);
         loginUrl.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(loginUrl);
     }
 
     return NextResponse.next();
-}
+});
 
 export const config = {
     matcher: [
