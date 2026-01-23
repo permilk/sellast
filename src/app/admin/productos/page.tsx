@@ -1,36 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
+import { getProducts, updateProduct, deleteProduct, Product } from '@/stores/productsStore';
 
-interface Product {
-    id: string;
-    sku: string;
-    name: string;
-    category: string;
-    stock: number;
-    precio: number;
-    estado: 'activo' | 'inactivo' | 'agotado';
-}
-
-const mockProducts: Product[] = [
-    { id: '1', sku: 'WJD-001', name: 'Whisky JackDaniels', category: 'Licor', stock: 24, precio: 85.00, estado: 'activo' },
-    { id: '2', sku: 'VA-001', name: 'Vodka Absolut', category: 'Licor', stock: 18, precio: 75.00, estado: 'activo' },
-    { id: '3', sku: 'CC-001', name: 'CocaCola', category: 'Gaseosa', stock: 48, precio: 18.00, estado: 'activo' },
-    { id: '4', sku: 'AS-001', name: 'Agua San 1Lt', category: 'Aguas', stock: 100, precio: 7.00, estado: 'activo' },
-    { id: '5', sku: 'PS-001', name: 'Pisco Suerño', category: 'Licor', stock: 0, precio: 10.00, estado: 'agotado' },
-    { id: '6', sku: 'PR-001', name: 'Preparado', category: 'Complementos', stock: 12, precio: 107.00, estado: 'activo' },
-    { id: '7', sku: 'TL-001', name: 'Tarro de leche gloria', category: 'Tienda', stock: 60, precio: 3.50, estado: 'activo' },
-    { id: '8', sku: 'PM-001', name: 'Pomarola', category: 'Tienda', stock: 40, precio: 7.00, estado: 'inactivo' },
-];
-
-const categories = ['Todas', 'Aguas', 'Complementos', 'Gaseosa', 'Licor', 'Tienda'];
+const categories = ['Todas', 'Aguas', 'Complementos', 'Gaseosa', 'Licor', 'Tienda', 'Bebidas', 'Limpieza', 'Alimentos', 'Indumentaria'];
 
 export default function ProductosPage() {
-    const [products] = useState<Product[]>(mockProducts);
+    const [products, setProducts] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('Todas');
     const [estadoFilter, setEstadoFilter] = useState('todos');
+
+    // Modal states
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [editForm, setEditForm] = useState<Partial<Product>>({});
+
+    // Load products from localStorage on mount
+    useEffect(() => {
+        setProducts(getProducts());
+    }, []);
+
+    const refreshProducts = () => setProducts(getProducts());
 
     const filteredProducts = products.filter(prod => {
         const matchesSearch = prod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,6 +35,40 @@ export default function ProductosPage() {
         const matchesEstado = estadoFilter === 'todos' || prod.estado === estadoFilter;
         return matchesSearch && matchesCategory && matchesEstado;
     });
+
+    const handleViewProduct = (prod: Product) => {
+        setSelectedProduct(prod);
+        setShowDetailModal(true);
+    };
+
+    const handleEditProduct = (prod: Product) => {
+        setSelectedProduct(prod);
+        setEditForm({ ...prod });
+        setShowEditModal(true);
+    };
+
+    const handleDeleteClick = (prod: Product) => {
+        setSelectedProduct(prod);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = () => {
+        if (selectedProduct) {
+            deleteProduct(selectedProduct.id);
+            refreshProducts();
+            setShowDeleteConfirm(false);
+            setSelectedProduct(null);
+        }
+    };
+
+    const saveEdit = () => {
+        if (selectedProduct && editForm) {
+            updateProduct(selectedProduct.id, editForm);
+            refreshProducts();
+            setShowEditModal(false);
+            setSelectedProduct(null);
+        }
+    };
 
     const getEstadoBadge = (estado: string) => {
         const styles: Record<string, React.CSSProperties> = {
@@ -54,6 +84,26 @@ export default function ProductosPage() {
             fontWeight: 600,
             textTransform: 'capitalize' as const
         };
+    };
+
+    const modalOverlay: React.CSSProperties = {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+    };
+
+    const modalContent: React.CSSProperties = {
+        background: 'white',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        maxWidth: '500px',
+        width: '90%',
+        maxHeight: '80vh',
+        overflow: 'auto'
     };
 
     return (
@@ -90,7 +140,18 @@ export default function ProductosPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
-                        onClick={() => alert('Exportando productos...')}
+                        onClick={() => exportToExcel(
+                            filteredProducts.map(p => ({
+                                SKU: p.sku,
+                                Nombre: p.name,
+                                Categoría: p.category,
+                                Stock: p.stock,
+                                Precio: `$${p.precio.toFixed(2)}`,
+                                Estado: p.estado
+                            })),
+                            'Productos_Sellast',
+                            'Productos'
+                        )}
                         style={{
                             padding: '0.75rem 1rem',
                             background: 'white',
@@ -135,6 +196,14 @@ export default function ProductosPage() {
                 </div>
             </div>
 
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Total Productos', value: products.length, color: 'blue' },
+                { label: 'Activos', value: products.filter(p => p.estado === 'activo').length, color: 'green' },
+                { label: 'Stock Bajo', value: products.filter(p => p.stock > 0 && p.stock < 15).length, color: 'amber' },
+                { label: 'Agotados', value: products.filter(p => p.estado === 'agotado').length, color: 'red' }
+            ]} />
+
             {/* Filters */}
             <div style={{
                 background: 'white',
@@ -173,12 +242,10 @@ export default function ProductosPage() {
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '0.9rem',
-                            minWidth: '150px'
+                            minWidth: '140px'
                         }}
                     >
-                        {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
+                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                 </div>
                 <div>
@@ -191,18 +258,18 @@ export default function ProductosPage() {
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '0.9rem',
-                            minWidth: '130px'
+                            minWidth: '120px'
                         }}
                     >
                         <option value="todos">Todos</option>
-                        <option value="activo">Activos</option>
-                        <option value="inactivo">Inactivos</option>
-                        <option value="agotado">Agotados</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                        <option value="agotado">Agotado</option>
                     </select>
                 </div>
             </div>
 
-            {/* Table */}
+            {/* Products Table */}
             <div style={{
                 background: 'white',
                 borderRadius: '12px',
@@ -211,26 +278,27 @@ export default function ProductosPage() {
             }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                        <tr style={{ background: '#f9fafb' }}>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>SKU</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Producto</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Categoría</th>
-                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Stock</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Precio</th>
-                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Estado</th>
-                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase' }}>Acciones</th>
+                        <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>SKU</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Producto</th>
+                            <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Categoría</th>
+                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Stock</th>
+                            <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Precio</th>
+                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Estado</th>
+                            <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, fontSize: '0.85rem', color: '#6b7280' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredProducts.map(prod => (
-                            <tr key={prod.id} style={{ borderTop: '1px solid #e5e7eb' }}>
-                                <td style={{ padding: '1rem', fontWeight: 500, color: '#7C3AED' }}>{prod.sku}</td>
+                            <tr key={prod.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                <td style={{ padding: '1rem', fontFamily: 'monospace', color: '#6b7280' }}>{prod.sku}</td>
                                 <td style={{ padding: '1rem', fontWeight: 500 }}>{prod.name}</td>
                                 <td style={{ padding: '1rem', color: '#6b7280' }}>{prod.category}</td>
                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                                     <span style={{
+                                        display: 'inline-block',
                                         padding: '0.25rem 0.75rem',
-                                        borderRadius: '6px',
+                                        borderRadius: '9999px',
                                         fontSize: '0.85rem',
                                         fontWeight: 600,
                                         background: prod.stock <= 10 ? '#FEE2E2' : '#D1FAE5',
@@ -246,7 +314,7 @@ export default function ProductosPage() {
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
                                         <button
-                                            onClick={() => alert(`Ver producto: ${prod.name}`)}
+                                            onClick={() => handleViewProduct(prod)}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -266,7 +334,7 @@ export default function ProductosPage() {
                                             </svg>
                                         </button>
                                         <button
-                                            onClick={() => alert(`Editar producto: ${prod.name}`)}
+                                            onClick={() => handleEditProduct(prod)}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -286,7 +354,7 @@ export default function ProductosPage() {
                                             </svg>
                                         </button>
                                         <button
-                                            onClick={() => alert(`Eliminar producto: ${prod.name}`)}
+                                            onClick={() => handleDeleteClick(prod)}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -318,6 +386,146 @@ export default function ProductosPage() {
                     </div>
                 )}
             </div>
+
+            {/* Detail Modal */}
+            {showDetailModal && selectedProduct && (
+                <div style={modalOverlay} onClick={() => setShowDetailModal(false)}>
+                    <div style={modalContent} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Detalle del Producto</h2>
+                            <button onClick={() => setShowDetailModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem' }}>&times;</button>
+                        </div>
+                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                            <div><strong>SKU:</strong> {selectedProduct.sku}</div>
+                            <div><strong>Nombre:</strong> {selectedProduct.name}</div>
+                            <div><strong>Categoría:</strong> {selectedProduct.category}</div>
+                            <div><strong>Precio:</strong> ${selectedProduct.precio.toFixed(2)}</div>
+                            <div><strong>Stock:</strong> {selectedProduct.stock} unidades</div>
+                            <div><strong>Estado:</strong> <span style={getEstadoBadge(selectedProduct.estado)}>{selectedProduct.estado}</span></div>
+                            {selectedProduct.descripcion && <div><strong>Descripción:</strong> {selectedProduct.descripcion}</div>}
+                            {selectedProduct.marca && <div><strong>Marca:</strong> {selectedProduct.marca}</div>}
+                            {selectedProduct.codigoBarras && <div><strong>Código de Barras:</strong> {selectedProduct.codigoBarras}</div>}
+                        </div>
+                        <button
+                            onClick={() => setShowDetailModal(false)}
+                            style={{ marginTop: '1.5rem', width: '100%', padding: '0.75rem', background: '#E5E7EB', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {showEditModal && selectedProduct && (
+                <div style={modalOverlay} onClick={() => setShowEditModal(false)}>
+                    <div style={modalContent} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Editar Producto</h2>
+                            <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem' }}>&times;</button>
+                        </div>
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Nombre</label>
+                                <input
+                                    type="text"
+                                    value={editForm.name || ''}
+                                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Precio</label>
+                                <input
+                                    type="number"
+                                    value={editForm.precio || 0}
+                                    onChange={e => setEditForm({ ...editForm, precio: parseFloat(e.target.value) })}
+                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Stock</label>
+                                <input
+                                    type="number"
+                                    value={editForm.stock || 0}
+                                    onChange={e => setEditForm({ ...editForm, stock: parseInt(e.target.value) })}
+                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Categoría</label>
+                                <select
+                                    value={editForm.category || ''}
+                                    onChange={e => setEditForm({ ...editForm, category: e.target.value })}
+                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                                >
+                                    {categories.filter(c => c !== 'Todas').map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Estado</label>
+                                <select
+                                    value={editForm.estado || 'activo'}
+                                    onChange={e => setEditForm({ ...editForm, estado: e.target.value as Product['estado'] })}
+                                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                                >
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="agotado">Agotado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                style={{ flex: 1, padding: '0.75rem', background: '#E5E7EB', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={saveEdit}
+                                style={{ flex: 1, padding: '0.75rem', background: '#2563EB', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && selectedProduct && (
+                <div style={modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
+                    <div style={modalContent} onClick={e => e.stopPropagation()}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ width: '60px', height: '60px', background: '#FEE2E2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                            </div>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>¿Eliminar producto?</h2>
+                            <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+                                Esta acción eliminará permanentemente <strong>{selectedProduct.name}</strong>. Esta acción no se puede deshacer.
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                style={{ flex: 1, padding: '0.75rem', background: '#E5E7EB', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                style={{ flex: 1, padding: '0.75rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

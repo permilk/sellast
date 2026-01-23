@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ConfiguracionPage() {
     const [activeTab, setActiveTab] = useState('empresa');
@@ -11,6 +11,7 @@ export default function ConfiguracionPage() {
     const [direccion, setDireccion] = useState('Av. Reforma 100, Col. Centro, CDMX');
     const [telefono, setTelefono] = useState('55 1234 5678');
     const [email, setEmail] = useState('contacto@sellast.com');
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
     // Tax config
     const [ivaRate, setIvaRate] = useState(16);
@@ -23,12 +24,37 @@ export default function ConfiguracionPage() {
     const [mensajeTicket, setMensajeTicket] = useState('¡Gracias por su compra!');
     const [anchoTicket, setAnchoTicket] = useState('80mm');
 
+    // Load saved config on mount
+    useEffect(() => {
+        const savedConfig = localStorage.getItem('sellast_config');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                if (config.nombreEmpresa) setNombreEmpresa(config.nombreEmpresa);
+                if (config.rfc) setRfc(config.rfc);
+                if (config.direccion) setDireccion(config.direccion);
+                if (config.telefono) setTelefono(config.telefono);
+                if (config.email) setEmail(config.email);
+                if (config.logoUrl) setLogoUrl(config.logoUrl);
+                if (config.ivaRate !== undefined) setIvaRate(config.ivaRate);
+                if (config.retencionIva !== undefined) setRetencionIva(config.retencionIva);
+                if (config.retencionIsr !== undefined) setRetencionIsr(config.retencionIsr);
+                if (config.mostrarLogo !== undefined) setMostrarLogo(config.mostrarLogo);
+                if (config.mostrarQr !== undefined) setMostrarQr(config.mostrarQr);
+                if (config.mensajeTicket) setMensajeTicket(config.mensajeTicket);
+                if (config.anchoTicket) setAnchoTicket(config.anchoTicket);
+            } catch (e) {
+                console.error('Error loading config:', e);
+            }
+        }
+    }, []);
+
     const tabs = [
-        { id: 'empresa', label: 'Empresa', icon: '🏢' },
-        { id: 'impuestos', label: 'Impuestos', icon: '📊' },
-        { id: 'tickets', label: 'Tickets', icon: '🎫' },
-        { id: 'usuarios', label: 'Usuarios', icon: '👥' },
-        { id: 'seguridad', label: 'Seguridad', icon: '🔒' },
+        { id: 'empresa', label: 'Empresa', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> },
+        { id: 'impuestos', label: 'Impuestos', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg> },
+        { id: 'tickets', label: 'Tickets', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg> },
+        { id: 'usuarios', label: 'Usuarios', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> },
+        { id: 'seguridad', label: 'Seguridad', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> },
     ];
 
     const inputStyles: React.CSSProperties = {
@@ -182,19 +208,82 @@ export default function ConfiguracionPage() {
                                         borderRadius: '12px',
                                         padding: '2rem',
                                         textAlign: 'center',
-                                        cursor: 'pointer'
-                                    }}>
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" style={{ margin: '0 auto 1rem' }}>
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                            <circle cx="8.5" cy="8.5" r="1.5" />
-                                            <polyline points="21 15 16 10 5 21" />
-                                        </svg>
-                                        <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
-                                            Arrastra tu logo aquí o haz click para seleccionar
-                                        </p>
-                                        <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                                            PNG, JPG hasta 2MB
-                                        </span>
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        background: logoUrl ? '#f9fafb' : 'transparent'
+                                    }}
+                                        onClick={() => document.getElementById('logo-input')?.click()}
+                                    >
+                                        <input
+                                            id="logo-input"
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/jpg"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        alert('El archivo debe ser menor a 2MB');
+                                                        return;
+                                                    }
+                                                    const reader = new FileReader();
+                                                    reader.onload = (event) => {
+                                                        setLogoUrl(event.target?.result as string);
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                        />
+
+                                        {logoUrl ? (
+                                            <div>
+                                                <img
+                                                    src={logoUrl}
+                                                    alt="Logo de empresa"
+                                                    style={{
+                                                        maxWidth: '150px',
+                                                        maxHeight: '100px',
+                                                        objectFit: 'contain',
+                                                        marginBottom: '0.5rem'
+                                                    }}
+                                                />
+                                                <p style={{ color: '#10B981', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
+                                                    ✓ Logo cargado correctamente
+                                                </p>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setLogoUrl(null);
+                                                    }}
+                                                    style={{
+                                                        marginTop: '0.5rem',
+                                                        padding: '0.25rem 0.75rem',
+                                                        background: '#FEE2E2',
+                                                        color: '#DC2626',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.8rem',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Eliminar logo
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" style={{ margin: '0 auto 1rem' }}>
+                                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                                    <polyline points="21 15 16 10 5 21" />
+                                                </svg>
+                                                <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
+                                                    Arrastra tu logo aquí o haz click para seleccionar
+                                                </p>
+                                                <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                                                    PNG, JPG hasta 2MB
+                                                </span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </>
@@ -470,19 +559,40 @@ export default function ConfiguracionPage() {
                             }}>
                                 Cancelar
                             </button>
-                            <button style={{
-                                padding: '0.75rem 1.5rem',
-                                background: '#10B981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '0.9rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                            }}>
+                            <button
+                                onClick={() => {
+                                    // Save all settings to localStorage
+                                    const config = {
+                                        nombreEmpresa,
+                                        rfc,
+                                        direccion,
+                                        telefono,
+                                        email,
+                                        logoUrl,
+                                        ivaRate,
+                                        retencionIva,
+                                        retencionIsr,
+                                        mostrarLogo,
+                                        mostrarQr,
+                                        mensajeTicket,
+                                        anchoTicket
+                                    };
+                                    localStorage.setItem('sellast_config', JSON.stringify(config));
+                                    alert('✅ Configuración guardada exitosamente');
+                                }}
+                                style={{
+                                    padding: '0.75rem 1.5rem',
+                                    background: '#10B981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                                     <polyline points="17 21 17 13 7 13 7 21" />

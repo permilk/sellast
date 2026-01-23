@@ -45,6 +45,7 @@ export default function AccountsReceivableModal({ isOpen, onClose }: AccountsRec
     const [debts] = useState<Debt[]>(mockDebts);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('pendientes');
+    const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
 
     if (!isOpen) return null;
 
@@ -106,7 +107,7 @@ export default function AccountsReceivableModal({ isOpen, onClose }: AccountsRec
                             <rect x="1" y="4" width="22" height="16" rx="2" />
                             <line x1="1" y1="10" x2="23" y2="10" />
                         </svg>
-                        <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Cuentas por Pagar - Gestión de Deudas</span>
+                        <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Cuentas por Cobrar - Gestión de Créditos</span>
                     </div>
                     <button
                         onClick={onClose}
@@ -327,19 +328,21 @@ export default function AccountsReceivableModal({ isOpen, onClose }: AccountsRec
                                             </span>
                                         </td>
                                         <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            <button style={{
-                                                padding: '0.5rem 1rem',
-                                                background: '#7C3AED',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.35rem'
-                                            }}>
+                                            <button
+                                                onClick={() => setSelectedDebt(debt)}
+                                                style={{
+                                                    padding: '0.5rem 1rem',
+                                                    background: '#7C3AED',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.35rem'
+                                                }}>
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                                     <circle cx="12" cy="12" r="3" />
@@ -386,6 +389,117 @@ export default function AccountsReceivableModal({ isOpen, onClose }: AccountsRec
                     </button>
                 </div>
             </div>
+
+            {/* Sub-modal: Detalle de Deudas del Cliente */}
+            {selectedDebt && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1100
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        width: '90%',
+                        maxWidth: '500px',
+                        maxHeight: '80vh',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#1f2937' }}>
+                                Deudas de {selectedDebt.cliente}
+                            </h3>
+                            <button
+                                onClick={() => setSelectedDebt(null)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: '#6b7280' }}
+                            >×</button>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Documento</label>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>{selectedDebt.documento}</p>
+                                </div>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Estado</label>
+                                    <span style={{
+                                        display: 'inline-block',
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '9999px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        background: selectedDebt.estado === 'vencido' ? '#FEE2E2' : '#FEF3C7',
+                                        color: selectedDebt.estado === 'vencido' ? '#DC2626' : '#92400E'
+                                    }}>
+                                        {selectedDebt.estado === 'vencido' ? 'Vencido' : 'Pendiente'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px' }}>
+                                <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Total Deuda</label>
+                                <p style={{
+                                    margin: 0,
+                                    fontWeight: 700,
+                                    fontSize: '1.75rem',
+                                    color: '#DC2626',
+                                    fontFamily: 'monospace'
+                                }}>$ {selectedDebt.totalDeuda.toFixed(2)}</p>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Cuotas Pendientes</label>
+                                    <p style={{ margin: 0, fontWeight: 600, fontSize: '1.25rem' }}>{selectedDebt.cuotasPendientes}</p>
+                                </div>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Cuotas Vencidas</label>
+                                    <p style={{ margin: 0, fontWeight: 600, fontSize: '1.25rem', color: selectedDebt.cuotasVencidas > 0 ? '#DC2626' : '#059669' }}>
+                                        {selectedDebt.cuotasVencidas}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Próximo Vencimiento</label>
+                                <p style={{ margin: 0, fontWeight: 500 }}>{selectedDebt.proximoVencimiento}</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                            <button
+                                onClick={() => setSelectedDebt(null)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    background: '#F1F5F9',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500
+                                }}
+                            >Cerrar</button>
+                            <button
+                                onClick={() => alert('Funcionalidad de registro de pago en desarrollo')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    background: '#10B981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500
+                                }}
+                            >Registrar Pago</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

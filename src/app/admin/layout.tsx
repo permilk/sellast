@@ -1,12 +1,16 @@
 'use client';
 
 // ============================================
-// ADMIN LAYOUT - ENTERPRISE STYLE
+// ADMIN LAYOUT - ENTERPRISE STYLE WITH RBAC
 // ============================================
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useMemo } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { hasAccess, ROLE_TITLES, ROLE_COLORS, Role } from '@/lib/rbac';
+import BranchSelector from '@/components/BranchSelector';
+import '@/styles/admin-typography.css';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -26,7 +30,7 @@ type MenuItem = {
 const mainNav: MenuItem[] = [
     {
         key: 'dashboard',
-        label: 'Dashboard',
+        label: 'Panel de Control',
         href: '/admin',
         type: 'link',
         icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
@@ -38,7 +42,8 @@ const mainNav: MenuItem[] = [
         icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>,
         children: [
             { key: 'nueva_venta', label: 'Nueva Venta', href: '/admin/pos', type: 'link', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg> },
-            { key: 'historial', label: 'Historial', href: '/admin/ventas/historial', type: 'link', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> }
+            { key: 'historial', label: 'Historial', href: '/admin/ventas/historial', type: 'link', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> },
+            { key: 'devoluciones', label: 'Devoluciones', href: '/admin/devoluciones', type: 'link', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> }
         ]
     },
     {
@@ -47,6 +52,13 @@ const mainNav: MenuItem[] = [
         href: '/admin/pedidos',
         type: 'link',
         icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+    },
+    {
+        key: 'cotizaciones',
+        label: 'Cotizaciones',
+        href: '/admin/cotizaciones',
+        type: 'link',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></svg>
     },
     {
         key: 'productos',
@@ -129,6 +141,34 @@ const mainNav: MenuItem[] = [
         icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
     },
     {
+        key: 'lealtad',
+        label: 'Lealtad',
+        href: '/admin/lealtad',
+        type: 'link',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+    },
+    {
+        key: 'lotes',
+        label: 'Lotes',
+        href: '/admin/lotes',
+        type: 'link',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+    },
+    {
+        key: 'conciliacion',
+        label: 'Conciliación',
+        href: '/admin/conciliacion',
+        type: 'link',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+    },
+    {
+        key: 'actividad',
+        label: 'Actividad',
+        href: '/admin/actividad',
+        type: 'link',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+    },
+    {
         key: 'configuracion',
         label: 'Configuración',
         href: '/admin/configuracion',
@@ -140,8 +180,58 @@ const mainNav: MenuItem[] = [
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
+    const { data: session } = useSession();
     const [cajaAbierta, setCajaAbierta] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    // Get user role from session
+    const userRole = ((session?.user as any)?.role || 'cajero') as Role;
+    const userName = session?.user?.name || 'Usuario';
+
+    // Module mapping for menu items
+    const moduleMap: Record<string, string> = {
+        dashboard: 'dashboard',
+        ventas: 'ventas',
+        pedidos: 'ventas',
+        cotizaciones: 'cotizaciones',
+        productos: 'productos',
+        inventario: 'inventario',
+        complementos: 'productos',
+        vencimientos: 'inventario',
+        clientes: 'clientes',
+        compras: 'compras',
+        proveedores: 'proveedores',
+        reportes: 'reportes',
+        caja: 'caja',
+        finanzas: 'finanzas',
+        usuarios: 'usuarios',
+        lealtad: 'lealtad',
+        lotes: 'lotes',
+        conciliacion: 'conciliacion',
+        actividad: 'actividad',
+        configuracion: 'configuracion',
+        gastos: 'gastos',
+        facturas: 'facturas'
+    };
+
+    // Filter menu items based on role
+    const filteredNav = useMemo(() => {
+        return mainNav.filter(item => {
+            const module = moduleMap[item.key] || item.key;
+            return hasAccess(userRole, module);
+        }).map(item => {
+            if (item.children) {
+                return {
+                    ...item,
+                    children: item.children.filter(child => {
+                        const module = moduleMap[child.key] || moduleMap[item.key] || child.key;
+                        return hasAccess(userRole, module);
+                    })
+                };
+            }
+            return item;
+        }).filter(item => !item.children || item.children.length > 0);
+    }, [userRole]);
 
     return (
         <div className="admin-layout">
@@ -159,7 +249,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <div className="flex justify-between items-center w-full">
                         <div className="logo-container">
                             {/* Replaced Icon with Typography as requested */}
-                            <span className="logo-text">Sellast<span className="highlight">.</span></span>
+                            <span className="logo-text" translate="no">Sellast<span className="highlight">.</span></span>
                         </div>
                         <button
                             className="md:hidden p-1 rounded text-slate-400 hover:text-white"
@@ -172,7 +262,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 <div className="sidebar-content">
                     <nav className="nav-menu">
-                        {mainNav.map((item) => (
+                        {filteredNav.map((item) => (
                             <div key={item.key} className="nav-group">
                                 {item.children ? (
                                     <details className="group" open>
@@ -220,18 +310,45 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </span>
                         </div>
                         <div className="caja-amount">$ 12,450.00</div>
-                        <button className="btn-close-caja" onClick={() => {
-                            localStorage.removeItem('sellast_admin_session');
-                            router.push('/');
-                        }}>Cerrar Turno</button>
+                        <div className="caja-buttons">
+                            <Link href="/admin/gastos" className="btn-gastos">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="12" y1="1" x2="12" y2="23" />
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                </svg>
+                                Gastos
+                            </Link>
+                            <button className="btn-close-caja" onClick={() => {
+                                localStorage.removeItem('sellast_admin_session');
+                                router.push('/');
+                            }}>Cerrar Turno</button>
+                        </div>
                     </div>
 
                     <div className="user-mini">
                         <div className="user-avatar">AD</div>
                         <div className="user-info">
-                            <span className="user-name">Administrador</span>
-                            <span className="user-role">Super Admin</span>
+                            <span className="user-name">{userName}</span>
+                            <span className="user-role" style={{
+                                background: ROLE_COLORS[userRole]?.bg,
+                                color: ROLE_COLORS[userRole]?.text,
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontSize: '0.7rem',
+                                fontWeight: 600
+                            }}>{ROLE_TITLES[userRole]}</span>
                         </div>
+                        <button
+                            onClick={() => signOut({ callbackUrl: '/auth' })}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px' }}
+                            title="Cerrar sesión"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </aside>
@@ -248,15 +365,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </button>
                         <div className="breadcrumb">
                             <span className="hidden md:inline">Panel de Control / </span>
-                            <span className="current">{pathname.split('/').pop()}</span>
+                            <span className="current" style={{ color: ROLE_COLORS[userRole]?.text }}>{ROLE_TITLES[userRole]}</span>
                         </div>
                     </div>
                     <div className="top-actions">
+                        <BranchSelector />
                         <button className="icon-btn notification">
                             <span className="dot"></span>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                         </button>
-                        <Link href="/" className="btn-store">
+                        <Link href="/tienda" className="btn-store">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
                             Ver Tienda
                         </Link>
@@ -449,8 +567,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 
                 .caja-amount { font-size: 1.25rem; font-weight: 600; color: var(--sidebar-text); margin-bottom: 1rem; font-family: var(--font-primary, 'Inter', sans-serif); }
                 
+                .caja-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+                
+                .btn-gastos {
+                    display: flex; align-items: center; justify-content: center; gap: 0.25rem;
+                    font-size: 0.75rem; padding: 0.5rem;
+                    background: rgba(16, 185, 129, 0.15);
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    border-radius: 8px;
+                    color: #34d399;
+                    cursor: pointer; transition: all 0.2s;
+                    text-decoration: none;
+                    font-weight: 500;
+                }
+                .btn-gastos:hover { background: rgba(16, 185, 129, 0.25); }
+                
                 .btn-close-caja { 
-                    width: 100%; font-size: 0.8rem; padding: 0.5rem; 
+                    font-size: 0.75rem; padding: 0.5rem; 
                     background: transparent; 
                     border: 1px solid var(--sidebar-border); 
                     border-radius: 8px; 

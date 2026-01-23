@@ -10,30 +10,50 @@ import { processSaleAction, searchProductsAction } from './actions/pos.actions';
 import AddToCartModal from './components/AddToCartModal';
 import ProcessSaleModal from './components/ProcessSaleModal';
 import SaleReceiptModal from './components/SaleReceiptModal';
+import { getProducts, Product } from '@/stores/productsStore';
+import { getClients, addClient, Client } from '@/stores/clientsStore';
+import { addQuotation, QuotationItem } from '@/stores/quotationsStore';
 import './pos-styles.css';
 
-// Mock products for grid display
-const mockProducts = [
-    { id: '1', name: 'Whisky JackDaniels', sku: 'WJD-001', price: 85.00, stock: 24, category: 'Licor', image: '' },
-    { id: '2', name: 'Vodka Absolut', sku: 'VA-001', price: 75.00, stock: 18, category: 'Licor', image: '' },
-    { id: '3', name: 'CocaCola', sku: 'CC-001', price: 18.00, stock: 48, category: 'Gaseosa', image: '' },
-    { id: '4', name: 'Agua San 1Lt', sku: 'AS-001', price: 7.00, stock: 100, category: 'Aguas', image: '' },
-    { id: '5', name: 'Pisco Suerño', sku: 'PS-001', price: 10.00, stock: 36, category: 'Licor', image: '' },
-    { id: '6', name: 'Preparado', sku: 'PR-001', price: 107.00, stock: 12, category: 'Complementos', image: '' },
-    { id: '7', name: 'Tarro de leche gloria', sku: 'TL-001', price: 3.50, stock: 60, category: 'Tienda', image: '' },
-    { id: '8', name: 'Pomarola', sku: 'PM-001', price: 7.00, stock: 40, category: 'Tienda', image: '' },
+// Placeholder images for products without images
+const placeholderImages = [
+    'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=100&h=100&fit=crop',
+    'https://images.unsplash.com/photo-1613063055954-fa3a67da1be2?w=100&h=100&fit=crop',
+    'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=100&h=100&fit=crop',
+    'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=100&h=100&fit=crop',
+    'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=100&h=100&fit=crop',
 ];
 
-const categories = ['Todos', 'Aguas', 'Complementos', 'Gaseosa', 'Licor', 'Tienda'];
+const categories = ['Todos', 'Aguas', 'Complementos', 'Gaseosa', 'Licor', 'Tienda', 'Bebidas', 'Limpieza', 'Alimentos', 'Indumentaria'];
 
 export default function POSSalesPage() {
     const router = useRouter();
+    const [products, setProducts] = useState<any[]>([]);
     const [busqueda, setBusqueda] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('Todos');
     const [carrito, setCarrito] = useState<any[]>([]);
     const [descuento, setDescuento] = useState(0);
+    const [descuentoTipo, setDescuentoTipo] = useState<'%' | '$'>('%');
     const [loadingPay, setLoadingPay] = useState(false);
     const [cliente, setCliente] = useState('general');
+
+    // Load products from store on mount
+    useEffect(() => {
+        const storedProducts = getProducts();
+        // Transform to POS format with images
+        const posProducts = storedProducts
+            .filter(p => p.estado === 'activo') // Only show active products
+            .map((p, index) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                price: p.precio,
+                stock: p.stock,
+                category: p.category,
+                image: p.imagen || placeholderImages[index % placeholderImages.length]
+            }));
+        setProducts(posProducts);
+    }, []);
 
     // Modal state
     const [showAddModal, setShowAddModal] = useState(false);
@@ -44,13 +64,92 @@ export default function POSSalesPage() {
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [lastSaleData, setLastSaleData] = useState<any>(null);
 
+    // New client modal
+    const [showClientModal, setShowClientModal] = useState(false);
+    const [clientes, setClientes] = useState<{ id: string, name: string }[]>([]);
+    const [nuevoCliente, setNuevoCliente] = useState({
+        nombre: '',
+        telefono: '',
+        email: '',
+        rfc: ''
+    });
+
+    // Load clients from store on mount
+    useEffect(() => {
+        const storedClients = getClients();
+        const clientOptions = [
+            { id: 'general', name: 'Cliente General' },
+            ...storedClients.map(c => ({ id: c.id, name: c.nombre }))
+        ];
+        setClientes(clientOptions);
+    }, []);
+
+    const handleClienteChange = (value: string) => {
+        if (value === 'nuevo') {
+            setShowClientModal(true);
+        } else {
+            setCliente(value);
+        }
+    };
+
+    const handleAddCliente = () => {
+        if (!nuevoCliente.nombre.trim()) {
+            alert('Por favor ingresa el nombre del cliente');
+            return;
+        }
+        // Save to clientsStore
+        const newClient = addClient({
+            documento: nuevoCliente.rfc || '',
+            nombre: nuevoCliente.nombre,
+            tipo: 'minorista',
+            telefono: nuevoCliente.telefono || '',
+            email: nuevoCliente.email || '',
+            totalCompras: 0
+        });
+        setClientes([...clientes, { id: newClient.id, name: newClient.nombre }]);
+        setCliente(newClient.id);
+        setShowClientModal(false);
+        setNuevoCliente({ nombre: '', telefono: '', email: '', rfc: '' });
+    };
+
     // Filter products
-    const filteredProducts = mockProducts.filter(prod => {
+    const filteredProducts = products.filter((prod: any) => {
         const matchesSearch = prod.name.toLowerCase().includes(busqueda.toLowerCase()) ||
             prod.sku?.toLowerCase().includes(busqueda.toLowerCase());
         const matchesCategory = categoryFilter === 'Todos' || prod.category === categoryFilter;
         return matchesSearch && matchesCategory;
     });
+
+    // Barcode scanner handler - auto-add to cart on exact match
+    const handleBarcodeSearch = (searchValue: string) => {
+        setBusqueda(searchValue);
+
+        // If it looks like a barcode (numbers only, 8-13 digits), try exact match
+        const isBarcode = /^\d{8,13}$/.test(searchValue.trim());
+        if (isBarcode || searchValue.length >= 3) {
+            const exactMatch = products.find((p: any) =>
+                p.sku?.toLowerCase() === searchValue.toLowerCase().trim() ||
+                p.id === searchValue.trim()
+            );
+
+            if (exactMatch) {
+                // Auto-add to cart with quantity 1
+                const existente = carrito.find(item => item.id === exactMatch.id);
+                if (existente) {
+                    setCarrito(carrito.map(item =>
+                        item.id === exactMatch.id
+                            ? { ...item, cantidad: item.cantidad + 1 }
+                            : item
+                    ));
+                } else {
+                    setCarrito([...carrito, { ...exactMatch, cantidad: 1 }]);
+                }
+                // Clear search and play sound feedback (optional)
+                setBusqueda('');
+                // Visual/audio feedback could be added here
+            }
+        }
+    };
 
     const handleProductClick = (product: any) => {
         setSelectedProduct(product);
@@ -85,8 +184,9 @@ export default function POSSalesPage() {
     };
 
     const subtotal = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
-    const iva = (subtotal - descuento) * 0.16; // IVA 16% México
-    const total = subtotal - descuento + iva;
+    const descuentoReal = descuentoTipo === '%' ? (subtotal * descuento / 100) : descuento;
+    const iva = (subtotal - descuentoReal) * 0.16; // IVA 16% México
+    const total = subtotal - descuentoReal + iva;
 
     const handlePay = () => {
         if (carrito.length === 0) return;
@@ -97,21 +197,37 @@ export default function POSSalesPage() {
         setLoadingPay(true);
         setShowProcessModal(false);
 
-        const result = await processSaleAction({
-            items: carrito.map(i => ({ id: i.id, price: i.price, quantity: i.cantidad })),
-            total: saleData.total,
-            subtotal: saleData.subtotal,
-            discount: saleData.descuento,
-            paymentMethod: saleData.metodoPago.toUpperCase()
-        });
+        try {
+            // Import and use localStorage-based salesStore
+            const { processSale } = await import('@/stores/salesStore');
 
-        if (result.success) {
-            setLastSaleData(saleData);
+            // Get the client name instead of ID
+            const selectedClient = clientes.find(c => c.id === cliente);
+            const clienteName = selectedClient?.name || saleData.cliente || 'Cliente General';
+
+            const sale = processSale({
+                items: carrito.map(i => ({
+                    id: i.id,
+                    name: i.name,
+                    price: i.price,
+                    quantity: i.cantidad
+                })),
+                subtotal: saleData.subtotal,
+                descuento: saleData.descuento,
+                iva: saleData.iva,
+                total: saleData.total,
+                metodoPago: saleData.metodoPago.toUpperCase(),
+                cliente: clienteName
+            });
+
+            // Add folio to saleData for receipt
+            setLastSaleData({ ...saleData, folio: sale.folio });
             setShowReceiptModal(true);
             setCarrito([]);
             setDescuento(0);
-        } else {
-            alert('Error: ' + result.error);
+        } catch (error) {
+            console.error('Error processing sale:', error);
+            alert('Error al procesar la venta');
         }
         setLoadingPay(false);
     };
@@ -120,59 +236,53 @@ export default function POSSalesPage() {
         <div className="pos-module" style={{ padding: 0 }}>
 
             {/* Main Content */}
-            <div style={{ padding: '1.25rem', background: '#f1f5f9', height: 'calc(100vh - 60px)' }}>
+            <div style={{ padding: '1.25rem', height: 'calc(100vh - 60px)' }}>
                 <div className="pos-sales-layout">
                     {/* LEFT: Products Panel */}
-                    <div className="pos-products-panel">
+                    <div className="pos-products-panel" style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}>
                         {/* Header */}
-                        <div className="pos-products-header">
-                            <div className="pos-products-title">
-                                <h2>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.5rem' }}>
-                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                                        <line x1="1" y1="10" x2="23" y2="10" />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                            <div>
+                                <h1 style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    fontSize: '1.5rem',
+                                    fontWeight: 700,
+                                    color: '#1f2937',
+                                    margin: 0
+                                }}>
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2">
+                                        <circle cx="9" cy="21" r="1" />
+                                        <circle cx="20" cy="21" r="1" />
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                                     </svg>
-                                    Punto de Venta
-                                </h2>
-                                <div className="pos-header-actions">
-                                    <button className="btn-pos btn-pos-cyan">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <line x1="12" y1="8" x2="12" y2="16" />
-                                            <line x1="8" y1="12" x2="16" y2="12" />
-                                        </svg>
-                                        Gastos
-                                    </button>
-                                    <button className="btn-pos btn-pos-rose" onClick={() => {
-                                        localStorage.removeItem('sellast_admin_session');
-                                        router.push('/');
-                                    }}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                        </svg>
-                                        Cerrar Turno
-                                    </button>
-                                </div>
+                                    Nueva Venta
+                                </h1>
+                                <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '0.25rem' }}>Registra tus ventas de manera rápida e intuitiva</p>
                             </div>
-                            <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '-0.5rem' }}>
-                                Registra tus ventas de manera rápida e intuitiva
-                            </p>
+                        </div>
 
-                            {/* Search Bar */}
-                            <div className="pos-search-bar">
-                                <div className="pos-search-input">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="11" cy="11" r="8" />
-                                        <path d="m21 21-4.35-4.35" />
-                                    </svg>
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar producto por nombre, código o escanear..."
-                                        value={busqueda}
-                                        onChange={(e) => setBusqueda(e.target.value)}
-                                    />
-                                </div>
+                        {/* Search Bar */}
+                        <div style={{ background: 'white', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+                            <div className="pos-search-input">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar producto por nombre, código o escanear..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleBarcodeSearch(busqueda);
+                                        }
+                                    }}
+                                    autoFocus
+                                />
                             </div>
                         </div>
 
@@ -198,11 +308,15 @@ export default function POSSalesPage() {
                                     onClick={() => handleProductClick(prod)}
                                 >
                                     <div className="product-tile-image">
-                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                            <circle cx="8.5" cy="8.5" r="1.5" />
-                                            <polyline points="21 15 16 10 5 21" />
-                                        </svg>
+                                        {prod.image ? (
+                                            <img src={prod.image} alt={prod.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
+                                        ) : (
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                                <polyline points="21 15 16 10 5 21" />
+                                            </svg>
+                                        )}
                                     </div>
                                     <div className="product-tile-name">{prod.name}</div>
                                     <div className="product-tile-price">$ {prod.price.toFixed(2)}</div>
@@ -246,7 +360,7 @@ export default function POSSalesPage() {
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <select
                                     value={cliente}
-                                    onChange={(e) => setCliente(e.target.value)}
+                                    onChange={(e) => handleClienteChange(e.target.value)}
                                     style={{
                                         flex: 1,
                                         padding: '0.75rem 1rem',
@@ -258,22 +372,26 @@ export default function POSSalesPage() {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    <option value="general">Cliente General</option>
+                                    {clientes.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
                                     <option value="nuevo">+ Nuevo Cliente</option>
                                 </select>
-                                <button style={{
-                                    width: '42px',
-                                    height: '42px',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    background: '#fff',
-                                    color: '#3B82F6',
-                                    fontSize: '1.5rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>+</button>
+                                <button
+                                    onClick={() => setShowClientModal(true)}
+                                    style={{
+                                        width: '42px',
+                                        height: '42px',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        background: '#fff',
+                                        color: '#3B82F6',
+                                        fontSize: '1.5rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>+</button>
                             </div>
                         </div>
 
@@ -351,14 +469,22 @@ export default function POSSalesPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                                 <label style={{ fontSize: '0.9rem', fontWeight: 500, color: '#374151' }}>Descuento</label>
                                 <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                    <button style={{
-                                        padding: '0.35rem 0.75rem', background: '#4B5563', color: 'white',
-                                        border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
-                                    }}>%</button>
-                                    <button style={{
-                                        padding: '0.35rem 0.75rem', background: '#E5E7EB', color: '#6B7280',
-                                        border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
-                                    }}>$</button>
+                                    <button
+                                        onClick={() => setDescuentoTipo('%')}
+                                        style={{
+                                            padding: '0.35rem 0.75rem',
+                                            background: descuentoTipo === '%' ? '#4B5563' : '#E5E7EB',
+                                            color: descuentoTipo === '%' ? 'white' : '#6B7280',
+                                            border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
+                                        }}>%</button>
+                                    <button
+                                        onClick={() => setDescuentoTipo('$')}
+                                        style={{
+                                            padding: '0.35rem 0.75rem',
+                                            background: descuentoTipo === '$' ? '#4B5563' : '#E5E7EB',
+                                            color: descuentoTipo === '$' ? 'white' : '#6B7280',
+                                            border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
+                                        }}>$</button>
                                 </div>
                             </div>
                             <input
@@ -382,7 +508,7 @@ export default function POSSalesPage() {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                                 <span style={{ color: '#6b7280' }}>Descuento:</span>
-                                <span style={{ fontWeight: 600, color: '#EF4444' }}>$ {descuento.toFixed(2)}</span>
+                                <span style={{ fontWeight: 600, color: '#EF4444' }}>$ {descuentoReal.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
                                 <span style={{ color: '#6b7280' }}>IVA (16.00%):</span>
@@ -426,15 +552,72 @@ export default function POSSalesPage() {
                                 {loadingPay ? 'Procesando...' : 'Procesar Venta'}
                             </button>
                             <button
-                                onClick={() => router.push('/admin/ventas/historial')}
+                                disabled={carrito.length === 0}
+                                onClick={() => {
+                                    if (carrito.length === 0) return;
+                                    const clienteObj = clientes.find(c => c.id === cliente);
+                                    const clienteName = clienteObj?.name || 'Cliente General';
+                                    const items: QuotationItem[] = carrito.map(item => ({
+                                        productoId: item.id,
+                                        nombre: item.name,
+                                        sku: item.sku || '',
+                                        cantidad: item.cantidad,
+                                        precioUnitario: item.price,
+                                        descuento: 0,
+                                        subtotal: item.price * item.cantidad
+                                    }));
+                                    const fechaVenc = new Date();
+                                    fechaVenc.setDate(fechaVenc.getDate() + 15);
+                                    addQuotation({
+                                        fechaVencimiento: fechaVenc.toISOString().slice(0, 10),
+                                        cliente: { id: cliente, nombre: clienteName, email: '', telefono: '' },
+                                        items,
+                                        subtotal,
+                                        descuentoGlobal: descuentoReal,
+                                        iva,
+                                        total,
+                                        estado: 'pendiente',
+                                        notas: '',
+                                        vendedor: 'Vendedor',
+                                        condicionesPago: 'Contado',
+                                        tiempoEntrega: 'Inmediata'
+                                    });
+                                    setCarrito([]);
+                                    router.push('/admin/cotizaciones');
+                                }}
                                 style={{
                                     width: '100%',
                                     marginTop: '0.75rem',
                                     padding: '0.75rem',
-                                    background: 'transparent',
-                                    color: '#3B82F6',
-                                    border: 'none',
+                                    background: carrito.length === 0 ? '#E5E7EB' : 'rgba(124, 58, 237, 0.1)',
+                                    color: carrito.length === 0 ? '#9CA3AF' : '#7C3AED',
+                                    border: carrito.length === 0 ? 'none' : '1px solid rgba(124, 58, 237, 0.3)',
+                                    borderRadius: '10px',
                                     fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    cursor: carrito.length === 0 ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.35rem'
+                                }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                                Guardar como Cotización
+                            </button>
+                            <button
+                                onClick={() => router.push('/admin/ventas/historial')}
+                                style={{
+                                    width: '100%',
+                                    marginTop: '0.5rem',
+                                    padding: '0.6rem',
+                                    background: 'transparent',
+                                    color: '#6B7280',
+                                    border: 'none',
+                                    fontSize: '0.85rem',
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                     display: 'flex',
@@ -443,7 +626,7 @@ export default function POSSalesPage() {
                                     gap: '0.35rem'
                                 }}
                             >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <circle cx="12" cy="12" r="10" />
                                     <polyline points="12 6 12 12 16 14" />
                                 </svg>
@@ -468,7 +651,7 @@ export default function POSSalesPage() {
                 onClose={() => setShowProcessModal(false)}
                 cartItems={carrito}
                 subtotal={subtotal}
-                descuento={descuento}
+                descuento={descuentoReal}
                 cliente={cliente}
                 onFinalizeSale={handleFinalizeSale}
             />
@@ -478,13 +661,148 @@ export default function POSSalesPage() {
                 isOpen={showReceiptModal}
                 onClose={() => setShowReceiptModal(false)}
                 saleData={lastSaleData}
-                companyInfo={{
-                    name: 'Sellast POS',
-                    rfc: 'SEL260121XX0',
-                    address: 'Av. Reforma 100, CDMX',
-                    phone: '55 1234 5678'
-                }}
             />
+
+            {/* New Client Modal */}
+            {showClientModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '16px',
+                        width: '100%',
+                        maxWidth: '450px',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.15)',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{
+                            padding: '1.25rem 1.5rem',
+                            borderBottom: '1px solid #e5e7eb',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                            color: 'white'
+                        }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                                Nuevo Cliente
+                            </h3>
+                            <button onClick={() => setShowClientModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: '1.5rem' }}>×</button>
+                        </div>
+                        <div style={{ padding: '1.5rem' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Nombre *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Nombre del cliente"
+                                    value={nuevoCliente.nombre}
+                                    onChange={e => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        fontSize: '0.95rem'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Teléfono</label>
+                                <input
+                                    type="tel"
+                                    placeholder="Ej: 55 1234 5678"
+                                    value={nuevoCliente.telefono}
+                                    onChange={e => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        fontSize: '0.95rem'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Email</label>
+                                    <input
+                                        type="email"
+                                        placeholder="correo@ejemplo.com"
+                                        value={nuevoCliente.email}
+                                        onChange={e => setNuevoCliente({ ...nuevoCliente, email: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem 1rem',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '8px',
+                                            fontSize: '0.95rem'
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>RFC</label>
+                                    <input
+                                        type="text"
+                                        placeholder="XAXX010101000"
+                                        value={nuevoCliente.rfc}
+                                        onChange={e => setNuevoCliente({ ...nuevoCliente, rfc: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem 1rem',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '8px',
+                                            fontSize: '0.95rem'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <button
+                                onClick={() => setShowClientModal(false)}
+                                style={{
+                                    padding: '0.75rem 1.5rem',
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    color: '#6b7280'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleAddCliente}
+                                style={{
+                                    padding: '0.75rem 1.5rem',
+                                    background: '#3B82F6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Agregar Cliente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

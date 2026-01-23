@@ -4,70 +4,55 @@
 // ADMIN - COMPLEMENTOS (CRUD Completo)
 // ============================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
+import { getComplements, addComplement, updateComplement, deleteComplement, Complement } from '@/stores/complementsStore';
 
-interface Complemento {
-    id: string;
-    nombre: string;
-    descripcion: string;
-    precio: number;
-    stock: number;
-    categoria: string;
-    estado: 'activo' | 'inactivo';
-    fechaCreacion: string;
-}
-
-const complementosMock: Complemento[] = [
-    { id: 'CMP-001', nombre: 'Hielo (Bolsa 5kg)', descripcion: 'Bolsa de hielo para bebidas', precio: 25.00, stock: 50, categoria: 'Bebidas', estado: 'activo', fechaCreacion: '2026-01-10' },
-    { id: 'CMP-002', nombre: 'Limón (10 pzas)', descripcion: 'Limones frescos por 10 piezas', precio: 15.00, stock: 30, categoria: 'Frutas', estado: 'activo', fechaCreacion: '2026-01-12' },
-    { id: 'CMP-003', nombre: 'Sal de grano (500g)', descripcion: 'Sal de grano para bebidas', precio: 12.00, stock: 40, categoria: 'Condimentos', estado: 'activo', fechaCreacion: '2026-01-15' },
-    { id: 'CMP-004', nombre: 'Mix de cacahuates', descripcion: 'Botana mixta para acompañar', precio: 35.00, stock: 25, categoria: 'Botanas', estado: 'activo', fechaCreacion: '2026-01-18' },
-    { id: 'CMP-005', nombre: 'Chamoy (350ml)', descripcion: 'Salsa chamoy para preparados', precio: 28.00, stock: 0, categoria: 'Salsas', estado: 'inactivo', fechaCreacion: '2026-01-05' },
-    { id: 'CMP-006', nombre: 'Chile en polvo Miguelito', descripcion: 'Chile piquín para bebidas', precio: 18.00, stock: 60, categoria: 'Condimentos', estado: 'activo', fechaCreacion: '2026-01-08' },
-];
-
-const categorias = ['Todas', 'Bebidas', 'Frutas', 'Condimentos', 'Botanas', 'Salsas'];
+const categorias = ['Todas', 'Bebidas', 'Frutas', 'Condimentos', 'Botanas', 'Salsas', 'Hielos', 'Desechables'];
 
 export default function ComplementosPage() {
-    const [complementos, setComplementos] = useState<Complemento[]>(complementosMock);
+    const [complementos, setComplementos] = useState<Complement[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoriaFilter, setCategoriaFilter] = useState('Todas');
     const [showModal, setShowModal] = useState(false);
-    const [editingItem, setEditingItem] = useState<Complemento | null>(null);
+    const [editingItem, setEditingItem] = useState<Complement | null>(null);
     const [formData, setFormData] = useState({
         nombre: '',
-        descripcion: '',
+        categoria: 'Bebidas',
         precio: 0,
-        stock: 0,
-        categoria: 'Bebidas'
+        stock: 0
     });
 
+    // Load from store
+    useEffect(() => {
+        setComplementos(getComplements());
+    }, []);
+
     const filteredComplementos = complementos.filter(c => {
-        const matchSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase());
         const matchCategoria = categoriaFilter === 'Todas' || c.categoria === categoriaFilter;
         return matchSearch && matchCategoria;
     });
 
     const totalComplementos = complementos.length;
-    const activos = complementos.filter(c => c.estado === 'activo').length;
-    const stockBajo = complementos.filter(c => c.stock < 10 && c.stock > 0).length;
-    const sinStock = complementos.filter(c => c.stock === 0).length;
+    const activos = complementos.filter(c => c.estado === 'Disponible').length;
+    const stockBajo = complementos.filter(c => c.estado === 'Stock Bajo').length;
+    const sinStock = complementos.filter(c => c.estado === 'Agotado').length;
 
     const openAddModal = () => {
         setEditingItem(null);
-        setFormData({ nombre: '', descripcion: '', precio: 0, stock: 0, categoria: 'Bebidas' });
+        setFormData({ nombre: '', categoria: 'Bebidas', precio: 0, stock: 0 });
         setShowModal(true);
     };
 
-    const openEditModal = (item: Complemento) => {
+    const openEditModal = (item: Complement) => {
         setEditingItem(item);
         setFormData({
             nombre: item.nombre,
-            descripcion: item.descripcion,
+            categoria: item.categoria,
             precio: item.precio,
-            stock: item.stock,
-            categoria: item.categoria
+            stock: item.stock
         });
         setShowModal(true);
     };
@@ -79,29 +64,18 @@ export default function ComplementosPage() {
         }
 
         if (editingItem) {
-            // Editar existente
-            setComplementos(complementos.map(c =>
-                c.id === editingItem.id
-                    ? { ...c, ...formData, estado: formData.stock > 0 ? 'activo' : 'inactivo' }
-                    : c
-            ));
+            updateComplement(editingItem.id, formData);
         } else {
-            // Crear nuevo
-            const newId = `CMP-${String(complementos.length + 1).padStart(3, '0')}`;
-            const newItem: Complemento = {
-                id: newId,
-                ...formData,
-                estado: formData.stock > 0 ? 'activo' : 'inactivo',
-                fechaCreacion: new Date().toISOString().split('T')[0]
-            };
-            setComplementos([...complementos, newItem]);
+            addComplement(formData);
         }
+        setComplementos(getComplements());
         setShowModal(false);
     };
 
     const handleDelete = (id: string) => {
         if (confirm('¿Estás seguro de eliminar este complemento?')) {
-            setComplementos(complementos.filter(c => c.id !== id));
+            deleteComplement(id);
+            setComplementos(getComplements());
         }
     };
 
@@ -122,7 +96,19 @@ export default function ComplementosPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
-                        onClick={() => alert('Exportando complementos...')}
+                        onClick={() => exportToExcel(
+                            filteredComplementos.map((item: Complement) => ({
+                                ID: item.id,
+                                Código: item.codigo,
+                                Nombre: item.nombre,
+                                Precio: `$${item.precio.toFixed(2)}`,
+                                Stock: item.stock,
+                                Categoría: item.categoria,
+                                Estado: item.estado
+                            })),
+                            'Complementos_Sellast',
+                            'Complementos'
+                        )}
                         style={{ padding: '0.75rem 1rem', background: 'white', color: '#374151', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -139,25 +125,13 @@ export default function ComplementosPage() {
                 </div>
             </div>
 
-            {/* KPIs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-primary)' }}>
-                    <p className="kpi-label">Total Complementos</p>
-                    <p className="kpi-value">{totalComplementos}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-success)' }}>
-                    <p className="kpi-label">Activos</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-success)' }}>{activos}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-warning)' }}>
-                    <p className="kpi-label">Stock Bajo</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-warning)' }}>{stockBajo}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-danger)' }}>
-                    <p className="kpi-label">Sin Stock</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-danger)' }}>{sinStock}</p>
-                </div>
-            </div>
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Total Complementos', value: totalComplementos, color: 'blue' },
+                { label: 'Activos', value: activos, color: 'green' },
+                { label: 'Stock Bajo', value: stockBajo, color: 'amber' },
+                { label: 'Sin Stock', value: sinStock, color: 'red' }
+            ]} />
 
             {/* Filters */}
             <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -200,7 +174,7 @@ export default function ComplementosPage() {
                                     <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-primary)' }}>{item.id}</td>
                                     <td>
                                         <div style={{ fontWeight: 600, color: 'var(--color-gray-900)' }}>{item.nombre}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-500)' }}>{item.descripcion}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-500)' }}>{item.codigo}</div>
                                     </td>
                                     <td>
                                         <span className="badge badge-primary">{item.categoria}</span>
@@ -216,8 +190,8 @@ export default function ComplementosPage() {
                                     </td>
                                     <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>$ {item.precio.toFixed(2)}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <span className={`badge ${item.estado === 'activo' ? 'badge-success' : 'badge-gray'}`}>
-                                            {item.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                                        <span className={`badge ${item.estado === 'Disponible' ? 'badge-success' : item.estado === 'Stock Bajo' ? 'badge-warning' : 'badge-gray'}`}>
+                                            {item.estado}
                                         </span>
                                     </td>
                                     <td>
@@ -266,16 +240,6 @@ export default function ComplementosPage() {
                                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                                     className="input"
                                     placeholder="Nombre del complemento"
-                                />
-                            </div>
-                            <div>
-                                <label className="label">Descripción</label>
-                                <input
-                                    type="text"
-                                    value={formData.descripcion}
-                                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                                    className="input"
-                                    placeholder="Descripción breve"
                                 />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

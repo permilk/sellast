@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
 
 export default function ReportesPage() {
     const [periodoFilter, setPeriodoFilter] = useState('hoy');
@@ -88,11 +90,59 @@ export default function ReportesPage() {
                         <option value="mes">Este Mes</option>
                         <option value="anio">Este Año</option>
                     </select>
-                    <button style={{
+                    <button onClick={() => {
+                        // Sheet 1: Resumen General
+                        const resumenGeneral = [
+                            { Concepto: 'Ventas del Día', Valor: `$${ventasHoy.toFixed(2)}` },
+                            { Concepto: 'Ventas de la Semana', Valor: `$${ventasSemana.toFixed(2)}` },
+                            { Concepto: 'Ventas del Mes', Valor: `$${ventasMes.toFixed(2)}` },
+                            { Concepto: 'Total Transacciones', Valor: transacciones },
+                            { Concepto: 'Ticket Promedio', Valor: `$${ticketPromedio.toFixed(2)}` }
+                        ];
+
+                        // Sheet 2: Top Productos
+                        const productosData = topProductos.map(p => ({
+                            Producto: p.nombre,
+                            'Unidades Vendidas': p.vendidos,
+                            'Total Ventas': `$${p.total.toFixed(2)}`
+                        }));
+
+                        // Sheet 3: Top Clientes
+                        const clientesData = topClientes.map(c => ({
+                            Cliente: c.nombre,
+                            Compras: c.compras,
+                            'Total Gastado': `$${c.total.toFixed(2)}`
+                        }));
+
+                        // Sheet 4: Ventas por Día
+                        const ventasDiarias = ventasPorDia.map(d => ({
+                            Día: d.dia,
+                            Monto: `$${d.monto.toFixed(2)}`
+                        }));
+
+                        // Export with multiple sheets using XLSX
+                        import('xlsx').then((XLSX) => {
+                            const wb = XLSX.utils.book_new();
+
+                            const ws1 = XLSX.utils.json_to_sheet(resumenGeneral);
+                            XLSX.utils.book_append_sheet(wb, ws1, 'Resumen General');
+
+                            const ws2 = XLSX.utils.json_to_sheet(productosData);
+                            XLSX.utils.book_append_sheet(wb, ws2, 'Top Productos');
+
+                            const ws3 = XLSX.utils.json_to_sheet(clientesData);
+                            XLSX.utils.book_append_sheet(wb, ws3, 'Top Clientes');
+
+                            const ws4 = XLSX.utils.json_to_sheet(ventasDiarias);
+                            XLSX.utils.book_append_sheet(wb, ws4, 'Ventas por Día');
+
+                            XLSX.writeFile(wb, 'Reporte_Completo_Sellast.xlsx');
+                        });
+                    }} style={{
                         padding: '0.75rem 1rem',
-                        background: '#10B981',
-                        color: 'white',
-                        border: 'none',
+                        background: 'white',
+                        color: '#374151',
+                        border: '1px solid #D1D5DB',
                         borderRadius: '8px',
                         fontSize: '0.9rem',
                         fontWeight: 600,
@@ -106,59 +156,18 @@ export default function ReportesPage() {
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Exportar PDF
+                        Exportar
                     </button>
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.5rem' }}>Ventas Hoy</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>$ {ventasHoy.toFixed(2)}</div>
-                </div>
-                <div style={{
-                    background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.5rem' }}>Ventas Semana</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>$ {ventasSemana.toFixed(2)}</div>
-                </div>
-                <div style={{
-                    background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.5rem' }}>Ventas Mes</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>$ {ventasMes.toFixed(2)}</div>
-                </div>
-                <div style={{
-                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.5rem' }}>Transacciones</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>{transacciones}</div>
-                </div>
-                <div style={{
-                    background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem'
-                }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.5rem' }}>Ticket Promedio</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>$ {ticketPromedio.toFixed(2)}</div>
-                </div>
-            </div>
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Ventas Hoy', value: ventasHoy.toFixed(2), color: 'green', prefix: '$ ' },
+                { label: 'Ventas Semana', value: ventasSemana.toFixed(2), color: 'blue', prefix: '$ ' },
+                { label: 'Ventas Mes', value: ventasMes.toFixed(2), color: 'purple', prefix: '$ ' },
+                { label: 'Ticket Promedio', value: ticketPromedio.toFixed(2), color: 'cyan', prefix: '$ ' }
+            ]} />
 
             {/* Charts Row */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -269,8 +278,9 @@ export default function ReportesPage() {
                     overflow: 'hidden'
                 }}>
                     <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>
-                            🏆 Productos Más Vendidos
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" /></svg>
+                            Productos Más Vendidos
                         </h3>
                     </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -320,8 +330,9 @@ export default function ReportesPage() {
                     overflow: 'hidden'
                 }}>
                     <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>
-                            ⭐ Mejores Clientes
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                            Mejores Clientes
                         </h3>
                     </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -361,6 +372,155 @@ export default function ReportesPage() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {/* Advanced Reports Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                {/* ABC Analysis */}
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2"><path d="M3 3v18h18" /><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" /></svg>
+                            Análisis ABC de Productos
+                        </h3>
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Pareto 80/20</span>
+                    </div>
+                    <div style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ background: '#10B981', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', minWidth: '40px', textAlign: 'center' }}>A</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>Productos Clase A (20%)</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Generan 80% de las ventas</div>
+                                </div>
+                                <span style={{ fontWeight: 600, color: '#10B981' }}>5 productos</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ background: '#F59E0B', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', minWidth: '40px', textAlign: 'center' }}>B</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>Productos Clase B (30%)</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Generan 15% de las ventas</div>
+                                </div>
+                                <span style={{ fontWeight: 600, color: '#F59E0B' }}>8 productos</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ background: '#EF4444', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', minWidth: '40px', textAlign: 'center' }}>C</span>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>Productos Clase C (50%)</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Generan 5% de las ventas</div>
+                                </div>
+                                <span style={{ fontWeight: 600, color: '#EF4444' }}>12 productos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Profit Report */}
+                <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                            Utilidad por Producto
+                        </h3>
+                    </div>
+                    <div style={{ padding: '1rem 1.5rem' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                    <th style={{ padding: '0.5rem 0', textAlign: 'left', fontWeight: 500, color: '#6b7280' }}>Producto</th>
+                                    <th style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>Margen</th>
+                                    <th style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 500, color: '#6b7280' }}>Utilidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <td style={{ padding: '0.5rem 0' }}>Whisky JackDaniels</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', color: '#10B981' }}>35%</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>$1,338.75</td>
+                                </tr>
+                                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <td style={{ padding: '0.5rem 0' }}>Vodka Absolut</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', color: '#10B981' }}>32%</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>$912.00</td>
+                                </tr>
+                                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <td style={{ padding: '0.5rem 0' }}>CocaCola</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', color: '#F59E0B' }}>18%</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>$388.80</td>
+                                </tr>
+                                <tr>
+                                    <td style={{ padding: '0.5rem 0' }}>Preparado</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', color: '#10B981' }}>40%</td>
+                                    <td style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 600 }}>$770.40</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {/* Corte Z - Daily Fiscal Summary */}
+            <div style={{
+                background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                color: 'white'
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                            Corte Z - Resumen Fiscal del Día
+                        </h3>
+                        <p style={{ margin: '0.25rem 0 0', opacity: 0.8, fontSize: '0.9rem' }}>23 de Enero de 2026</p>
+                    </div>
+                    <button style={{ padding: '0.75rem 1.25rem', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                        Imprimir Corte
+                    </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '1rem' }}>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '0.25rem' }}>VENTAS EN EFECTIVO</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'monospace' }}>$1,850.00</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '1rem' }}>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '0.25rem' }}>VENTAS CON TARJETA</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'monospace' }}>$480.00</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '1rem' }}>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '0.25rem' }}>TRANSFERENCIAS</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'monospace' }}>$120.00</div>
+                    </div>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '1rem' }}>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '0.25rem' }}>TOTAL DEL DÍA</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'monospace' }}>$2,450.00</div>
+                    </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                        <span style={{ opacity: 0.8 }}>Transacciones:</span>
+                        <span style={{ fontWeight: 600 }}>47</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                        <span style={{ opacity: 0.8 }}>Ticket Promedio:</span>
+                        <span style={{ fontWeight: 600 }}>$52.13</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                        <span style={{ opacity: 0.8 }}>IVA Recaudado:</span>
+                        <span style={{ fontWeight: 600 }}>$337.93</span>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,301 @@
+/* ============================================
+   SELLAST STORE - APPLE DESIGN SYSTEM
+   ============================================ */
+
+/* Design Tokens */
+:root {
+    /* Colors - Neutral Palette */
+    --store-white: #FFFFFF;
+    --store-snow: #FAFAFA;
+    --store-gray-50: #F5F5F7;
+    --store-gray-100: #E8E8ED;
+    --store-gray-200: #D2D2D7;
+    --store-gray-300: #86868B;
+    --store-gray-400: #6E6E73;
+    --store-gray-500: #424245;
+    --store-gray-600: #1D1D1F;
+    --store-black: #000000;
+
+    /* Accent - Configurable */
+    --store-accent: #0071E3;
+    --store-accent-hover: #0077ED;
+    --store-accent-light: rgba(0, 113, 227, 0.1);
+
+    /* Semantic */
+    --store-success: #34C759;
+    --store-warning: #FF9500;
+    --store-error: #FF3B30;
+
+    /* Typography */
+    --store-font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+
+    /* Spacing */
+    --store-space-xs: 0.25rem;
+    --store-space-sm: 0.5rem;
+    --store-space-md: 1rem;
+    --store-space-lg: 1.5rem;
+    --store-space-xl: 2rem;
+    --store-space-2xl: 3rem;
+    --store-space-3xl: 4rem;
+    --store-space-4xl: 6rem;
+
+    /* Shadows - Subtle & Diffuse */
+    --store-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --store-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --store-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+    --store-shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.16);
+
+    /* Border Radius */
+    --store-radius-sm: 8px;
+    --store-radius-md: 12px;
+    --store-radius-lg: 18px;
+    --store-radius-xl: 24px;
+
+    /* Glass Effect */
+    --store-glass-bg: rgba(255, 255, 255, 0.72);
+    --store-glass-border: rgba(255, 255, 255, 0.5);
+    --store-glass-blur: 20px;
+
+    /* Transitions */
+    --store-transition-fast: 150ms ease;
+    --store-transition-base: 250ms ease;
+    --store-transition-slow: 400ms ease;
+}
+
+/* Base Store Styles */
+.store-page {
+    min-height: 100vh;
+    background: var(--store-snow);
+    font-family: var(--store-font);
+    color: var(--store-gray-600);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+.store-h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    color: var(--store-gray-600);
+}
+
+.store-h2 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--store-gray-600);
+}
+
+.store-h3 {
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--store-gray-600);
+}
+
+.store-body {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--store-gray-400);
+}
+
+.store-body-lg {
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--store-gray-400);
+}
+
+.store-caption {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--store-gray-300);
+}
+
+/* Container */
+.store-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--store-space-xl);
+}
+
+.store-container-wide {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--store-space-xl);
+}
+
+/* Glass Components */
+.store-glass {
+    background: var(--store-glass-bg);
+    backdrop-filter: blur(var(--store-glass-blur));
+    -webkit-backdrop-filter: blur(var(--store-glass-blur));
+    border: 1px solid var(--store-glass-border);
+}
+
+.store-glass-dark {
+    background: rgba(29, 29, 31, 0.8);
+    backdrop-filter: blur(var(--store-glass-blur));
+    -webkit-backdrop-filter: blur(var(--store-glass-blur));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Buttons */
+.store-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--store-space-sm);
+    padding: var(--store-space-md) var(--store-space-xl);
+    font-family: var(--store-font);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border-radius: var(--store-radius-lg);
+    border: none;
+    cursor: pointer;
+    transition: all var(--store-transition-base);
+    text-decoration: none;
+}
+
+.store-btn-primary {
+    background: var(--store-accent);
+    color: var(--store-white);
+}
+
+.store-btn-primary:hover {
+    background: var(--store-accent-hover);
+    transform: scale(1.02);
+}
+
+.store-btn-secondary {
+    background: transparent;
+    color: var(--store-accent);
+    border: 1px solid var(--store-gray-200);
+}
+
+.store-btn-secondary:hover {
+    background: var(--store-gray-50);
+    border-color: var(--store-gray-300);
+}
+
+.store-btn-ghost {
+    background: transparent;
+    color: var(--store-gray-600);
+    padding: var(--store-space-sm) var(--store-space-md);
+}
+
+.store-btn-ghost:hover {
+    background: var(--store-gray-50);
+}
+
+/* Cards */
+.store-card {
+    background: var(--store-white);
+    border-radius: var(--store-radius-lg);
+    overflow: hidden;
+    transition: all var(--store-transition-base);
+}
+
+.store-card:hover {
+    box-shadow: var(--store-shadow-lg);
+    transform: translateY(-4px);
+}
+
+/* Input */
+.store-input {
+    width: 100%;
+    padding: var(--store-space-md) var(--store-space-lg);
+    font-family: var(--store-font);
+    font-size: 1rem;
+    color: var(--store-gray-600);
+    background: var(--store-white);
+    border: 1px solid var(--store-gray-200);
+    border-radius: var(--store-radius-md);
+    outline: none;
+    transition: all var(--store-transition-fast);
+}
+
+.store-input:focus {
+    border-color: var(--store-accent);
+    box-shadow: 0 0 0 4px var(--store-accent-light);
+}
+
+.store-input::placeholder {
+    color: var(--store-gray-300);
+}
+
+/* Divider */
+.store-divider {
+    height: 1px;
+    background: var(--store-gray-100);
+    border: none;
+    margin: var(--store-space-xl) 0;
+}
+
+/* Badge */
+.store-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--store-space-xs) var(--store-space-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.store-badge-new {
+    background: var(--store-accent-light);
+    color: var(--store-accent);
+}
+
+.store-badge-sale {
+    background: rgba(255, 59, 48, 0.1);
+    color: var(--store-error);
+}
+
+/* Animations */
+@keyframes store-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes store-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.store-animate-fade {
+    animation: store-fade-in var(--store-transition-base) ease-out;
+}
+
+.store-animate-slide {
+    animation: store-slide-up var(--store-transition-slow) ease-out;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+
+    .store-container,
+    .store-container-wide {
+        padding: 0 var(--store-space-lg);
+    }
+}

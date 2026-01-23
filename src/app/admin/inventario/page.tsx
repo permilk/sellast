@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { KPISummary } from '@/components/admin/KPISummary';
+import { getProducts, Product } from '@/stores/productsStore';
 
 interface InventoryItem {
     id: string;
@@ -13,15 +15,6 @@ interface InventoryItem {
     estado: 'normal' | 'bajo' | 'agotado' | 'exceso';
 }
 
-const mockInventory: InventoryItem[] = [
-    { id: '1', producto: 'Whisky JackDaniels', sku: 'WJD-001', stockActual: 24, stockMinimo: 10, stockMaximo: 50, ultimoMovimiento: '21/01/2026', estado: 'normal' },
-    { id: '2', producto: 'Vodka Absolut', sku: 'VA-001', stockActual: 18, stockMinimo: 10, stockMaximo: 40, ultimoMovimiento: '20/01/2026', estado: 'normal' },
-    { id: '3', producto: 'CocaCola', sku: 'CC-001', stockActual: 5, stockMinimo: 20, stockMaximo: 100, ultimoMovimiento: '21/01/2026', estado: 'bajo' },
-    { id: '4', producto: 'Agua San 1Lt', sku: 'AS-001', stockActual: 0, stockMinimo: 30, stockMaximo: 150, ultimoMovimiento: '19/01/2026', estado: 'agotado' },
-    { id: '5', producto: 'Pisco Suerño', sku: 'PS-001', stockActual: 36, stockMinimo: 15, stockMaximo: 60, ultimoMovimiento: '18/01/2026', estado: 'normal' },
-    { id: '6', producto: 'Preparado', sku: 'PR-001', stockActual: 65, stockMinimo: 5, stockMaximo: 50, ultimoMovimiento: '21/01/2026', estado: 'exceso' },
-];
-
 interface Movement {
     id: string;
     fecha: string;
@@ -31,19 +24,53 @@ interface Movement {
     motivo: string;
 }
 
-const mockMovements: Movement[] = [
+const initialMovements: Movement[] = [
     { id: '1', fecha: '21/01/2026 14:30', tipo: 'salida', producto: 'CocaCola', cantidad: 12, motivo: 'Venta' },
     { id: '2', fecha: '21/01/2026 12:00', tipo: 'entrada', producto: 'Whisky JackDaniels', cantidad: 10, motivo: 'Compra a proveedor' },
     { id: '3', fecha: '21/01/2026 10:15', tipo: 'ajuste', producto: 'Preparado', cantidad: 5, motivo: 'Inventario físico' },
-    { id: '4', fecha: '20/01/2026 16:45', tipo: 'salida', producto: 'Vodka Absolut', cantidad: 3, motivo: 'Venta' },
-    { id: '5', fecha: '20/01/2026 11:00', tipo: 'entrada', producto: 'Pisco Suerño', cantidad: 20, motivo: 'Compra a proveedor' },
 ];
 
 export default function InventarioPage() {
-    const [inventory] = useState<InventoryItem[]>(mockInventory);
-    const [movements] = useState<Movement[]>(mockMovements);
+    const [inventory, setInventory] = useState<InventoryItem[]>([]);
+    const [movements, setMovements] = useState<Movement[]>(initialMovements);
     const [activeTab, setActiveTab] = useState<'stock' | 'movimientos'>('stock');
     const [searchTerm, setSearchTerm] = useState('');
+    const [showEntradaModal, setShowEntradaModal] = useState(false);
+    const [showSalidaModal, setShowSalidaModal] = useState(false);
+    const [showAjusteModal, setShowAjusteModal] = useState(false);
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+    const [movimiento, setMovimiento] = useState({ producto: '', cantidad: 1, motivo: '' });
+    const [ajusteCantidad, setAjusteCantidad] = useState(0);
+    const [ajusteMotivo, setAjusteMotivo] = useState('');
+    const [editMinimo, setEditMinimo] = useState(10);
+    const [editMaximo, setEditMaximo] = useState(100);
+
+    // Load inventory from productsStore
+    useEffect(() => {
+        const products = getProducts();
+        const inventoryItems: InventoryItem[] = products.map((p: Product) => {
+            const stockMin = 10;
+            const stockMax = 100;
+            let estado: InventoryItem['estado'] = 'normal';
+            if (p.stock === 0) estado = 'agotado';
+            else if (p.stock < stockMin) estado = 'bajo';
+            else if (p.stock > stockMax) estado = 'exceso';
+
+            return {
+                id: p.id,
+                producto: p.name,
+                sku: p.codigoBarras || `SKU-${p.id.slice(-3)}`,
+                stockActual: p.stock,
+                stockMinimo: stockMin,
+                stockMaximo: stockMax,
+                ultimoMovimiento: new Date().toLocaleDateString('es-MX'),
+                estado
+            };
+        });
+        setInventory(inventoryItems);
+    }, []);
 
     const getEstadoBadge = (estado: string) => {
         const styles: Record<string, { bg: string; color: string; label: string }> = {
@@ -123,7 +150,7 @@ export default function InventarioPage() {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button style={{
+                    <button onClick={() => setShowEntradaModal(true)} style={{
                         padding: '0.75rem 1rem',
                         background: '#2563EB',
                         color: 'white',
@@ -142,7 +169,7 @@ export default function InventarioPage() {
                         </svg>
                         Registrar Entrada
                     </button>
-                    <button style={{
+                    <button onClick={() => setShowSalidaModal(true)} style={{
                         padding: '0.75rem 1rem',
                         background: '#EF4444',
                         color: 'white',
@@ -163,49 +190,13 @@ export default function InventarioPage() {
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    borderLeft: '4px solid #3B82F6'
-                }}>
-                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Productos</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#3B82F6' }}>{productosActivos}</div>
-                </div>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    borderLeft: '4px solid #EF4444'
-                }}>
-                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Alertas Stock</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#EF4444' }}>{alertas}</div>
-                </div>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    borderLeft: '4px solid #10B981'
-                }}>
-                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Entradas Hoy</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#10B981' }}>12</div>
-                </div>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '12px',
-                    padding: '1.25rem',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    borderLeft: '4px solid #F59E0B'
-                }}>
-                    <div style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Salidas Hoy</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#F59E0B' }}>8</div>
-                </div>
-            </div>
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Productos', value: productosActivos, color: 'blue' },
+                { label: 'Alertas Stock', value: alertas, color: 'red' },
+                { label: 'Entradas Hoy', value: 12, color: 'green' },
+                { label: 'Salidas Hoy', value: 8, color: 'amber' }
+            ]} />
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -242,20 +233,33 @@ export default function InventarioPage() {
             </div>
 
             {/* Search */}
-            <div style={{ marginBottom: '1rem', maxWidth: '400px' }}>
-                <input
-                    type="text"
-                    placeholder="Buscar producto..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '0.9rem'
-                    }}
-                />
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '1rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                alignItems: 'flex-end'
+            }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Buscar</label>
+                    <input
+                        type="text"
+                        placeholder="Nombre o SKU del producto..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.6rem 1rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem'
+                        }}
+                    />
+                </div>
             </div>
 
             {/* Stock Table */}
@@ -290,7 +294,7 @@ export default function InventarioPage() {
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
                                             <button
-                                                onClick={() => alert(`Ver detalles de: ${item.producto}`)}
+                                                onClick={() => { setSelectedItem(item); setShowDetalleModal(true); }}
                                                 style={{
                                                     width: '32px', height: '32px', background: '#CFFAFE', border: 'none',
                                                     borderRadius: '6px', cursor: 'pointer', display: 'flex',
@@ -303,7 +307,7 @@ export default function InventarioPage() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={() => alert(`Editar: ${item.producto}`)}
+                                                onClick={() => { setSelectedItem(item); setEditMinimo(item.stockMinimo); setEditMaximo(item.stockMaximo); setShowEditModal(true); }}
                                                 style={{
                                                     width: '32px', height: '32px', background: '#FEF3C7', border: 'none',
                                                     borderRadius: '6px', cursor: 'pointer', display: 'flex',
@@ -317,7 +321,7 @@ export default function InventarioPage() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={() => alert(`Ajustar stock de: ${item.producto}`)}
+                                                onClick={() => { setSelectedItem(item); setAjusteCantidad(0); setAjusteMotivo(''); setShowAjusteModal(true); }}
                                                 style={{
                                                     width: '32px', height: '32px', background: '#DBEAFE', border: 'none',
                                                     borderRadius: '6px', cursor: 'pointer', display: 'flex',
@@ -372,6 +376,227 @@ export default function InventarioPage() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Modal Registrar Entrada */}
+            {showEntradaModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '450px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#2563EB' }}>Registrar Entrada</h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Producto *</label>
+                                <select value={movimiento.producto} onChange={e => setMovimiento({ ...movimiento, producto: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                                    <option value="">Seleccionar producto...</option>
+                                    {inventory.map(item => <option key={item.id} value={item.producto}>{item.producto}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cantidad *</label>
+                                <input type="number" min="1" value={movimiento.cantidad} onChange={e => setMovimiento({ ...movimiento, cantidad: Number(e.target.value) })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Motivo</label>
+                                <input type="text" value={movimiento.motivo} onChange={e => setMovimiento({ ...movimiento, motivo: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} placeholder="Compra a proveedor" />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => setShowEntradaModal(false)} style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                            <button onClick={() => {
+                                if (!movimiento.producto || movimiento.cantidad < 1) { alert('Producto y cantidad son requeridos'); return; }
+                                const newMov: Movement = { id: String(movements.length + 1), fecha: new Date().toLocaleString('es-MX'), tipo: 'entrada', producto: movimiento.producto, cantidad: movimiento.cantidad, motivo: movimiento.motivo || 'Sin especificar' };
+                                setMovements([newMov, ...movements]);
+                                // Update stock for the product
+                                setInventory(prev => prev.map(item =>
+                                    item.producto === movimiento.producto
+                                        ? { ...item, stockActual: item.stockActual + movimiento.cantidad, estado: (item.stockActual + movimiento.cantidad) === 0 ? 'agotado' : (item.stockActual + movimiento.cantidad) < item.stockMinimo ? 'bajo' : (item.stockActual + movimiento.cantidad) > item.stockMaximo ? 'exceso' : 'normal' }
+                                        : item
+                                ));
+                                const cantidadRegistrada = movimiento.cantidad;
+                                const productoRegistrado = movimiento.producto;
+                                setMovimiento({ producto: '', cantidad: 1, motivo: '' });
+                                setShowEntradaModal(false);
+                                alert(`Entrada de ${cantidadRegistrada} unidades de ${productoRegistrado} registrada`);
+                            }} style={{ padding: '0.75rem 1.5rem', background: '#2563EB', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Registrar Entrada</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Registrar Salida */}
+            {showSalidaModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '450px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#EF4444' }}>Registrar Salida</h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Producto *</label>
+                                <select value={movimiento.producto} onChange={e => setMovimiento({ ...movimiento, producto: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                                    <option value="">Seleccionar producto...</option>
+                                    {inventory.map(item => <option key={item.id} value={item.producto}>{item.producto}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cantidad *</label>
+                                <input type="number" min="1" value={movimiento.cantidad} onChange={e => setMovimiento({ ...movimiento, cantidad: Number(e.target.value) })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Motivo</label>
+                                <input type="text" value={movimiento.motivo} onChange={e => setMovimiento({ ...movimiento, motivo: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} placeholder="Venta, merma, ajuste..." />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => setShowSalidaModal(false)} style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                            <button onClick={() => {
+                                if (!movimiento.producto || movimiento.cantidad < 1) { alert('Producto y cantidad son requeridos'); return; }
+                                // Check if there's enough stock
+                                const currentItem = inventory.find(i => i.producto === movimiento.producto);
+                                if (currentItem && currentItem.stockActual < movimiento.cantidad) {
+                                    alert(`Stock insuficiente. Stock actual: ${currentItem.stockActual}`);
+                                    return;
+                                }
+                                const newMov: Movement = { id: String(movements.length + 1), fecha: new Date().toLocaleString('es-MX'), tipo: 'salida', producto: movimiento.producto, cantidad: movimiento.cantidad, motivo: movimiento.motivo || 'Sin especificar' };
+                                setMovements([newMov, ...movements]);
+                                // Update stock for the product (subtract)
+                                setInventory(prev => prev.map(item =>
+                                    item.producto === movimiento.producto
+                                        ? { ...item, stockActual: item.stockActual - movimiento.cantidad, estado: (item.stockActual - movimiento.cantidad) === 0 ? 'agotado' : (item.stockActual - movimiento.cantidad) < item.stockMinimo ? 'bajo' : (item.stockActual - movimiento.cantidad) > item.stockMaximo ? 'exceso' : 'normal' }
+                                        : item
+                                ));
+                                const cantidadRegistrada = movimiento.cantidad;
+                                const productoRegistrado = movimiento.producto;
+                                setMovimiento({ producto: '', cantidad: 1, motivo: '' });
+                                setShowSalidaModal(false);
+                                alert(`Salida de ${cantidadRegistrada} unidades de ${productoRegistrado} registrada`);
+                            }} style={{ padding: '0.75rem 1.5rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Registrar Salida</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Ajuste de Stock */}
+            {showAjusteModal && selectedItem && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '450px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#3B82F6' }}>Ajustar Stock - {selectedItem.producto}</h2>
+                        <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#6b7280' }}>Stock Actual: <strong style={{ color: '#111827', fontSize: '1.1rem' }}>{selectedItem.stockActual}</strong></p>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Ajuste (+/-) *</label>
+                                <input type="number" value={ajusteCantidad} onChange={e => setAjusteCantidad(Number(e.target.value))}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                                    placeholder="Ej: +10 o -5" />
+                                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>Nuevo stock: <strong>{selectedItem.stockActual + ajusteCantidad}</strong></p>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Motivo *</label>
+                                <input type="text" value={ajusteMotivo} onChange={e => setAjusteMotivo(e.target.value)}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                                    placeholder="Inventario físico, corrección, merma..." />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => { setShowAjusteModal(false); setSelectedItem(null); }}
+                                style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                            <button onClick={() => {
+                                if (!ajusteMotivo) { alert('El motivo es requerido'); return; }
+                                const newMov: Movement = { id: String(movements.length + 1), fecha: new Date().toLocaleString('es-MX'), tipo: 'ajuste', producto: selectedItem.producto, cantidad: Math.abs(ajusteCantidad), motivo: ajusteMotivo };
+                                setMovements([newMov, ...movements]);
+                                setInventory(prev => prev.map(i => i.id === selectedItem.id ? { ...i, stockActual: i.stockActual + ajusteCantidad } : i));
+                                setShowAjusteModal(false);
+                                setSelectedItem(null);
+                            }} style={{ padding: '0.75rem 1.5rem', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Aplicar Ajuste</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Detalle de Producto */}
+            {showDetalleModal && selectedItem && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '500px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111827' }}>Detalle de Inventario</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>PRODUCTO</p>
+                                <p style={{ fontWeight: 700, margin: 0 }}>{selectedItem.producto}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>SKU</p>
+                                <p style={{ fontWeight: 500, margin: 0, fontFamily: 'monospace', color: '#7C3AED' }}>{selectedItem.sku}</p>
+                            </div>
+                            <div style={{ background: '#DBEAFE', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#3B82F6', marginBottom: '0.25rem' }}>STOCK ACTUAL</p>
+                                <p style={{ fontWeight: 700, fontSize: '1.5rem', margin: 0, color: '#3B82F6' }}>{selectedItem.stockActual}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>ESTADO</p>
+                                <p style={{ margin: 0 }}>{getEstadoBadge(selectedItem.estado)}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>MÍNIMO</p>
+                                <p style={{ fontWeight: 500, margin: 0 }}>{selectedItem.stockMinimo}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>MÁXIMO</p>
+                                <p style={{ fontWeight: 500, margin: 0 }}>{selectedItem.stockMaximo}</p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => { setShowDetalleModal(false); setSelectedItem(null); }}
+                                style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
+                            <button onClick={() => { setShowDetalleModal(false); setAjusteCantidad(0); setAjusteMotivo(''); setShowAjusteModal(true); }}
+                                style={{ padding: '0.75rem 1.5rem', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Ajustar Stock</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Editar Inventario */}
+            {showEditModal && selectedItem && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '450px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#F59E0B' }}>Editar - {selectedItem.producto}</h2>
+                        <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#6b7280' }}>Stock Actual: <strong style={{ color: '#111827', fontSize: '1.1rem' }}>{selectedItem.stockActual}</strong></p>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Stock Mínimo *</label>
+                                <input type="number" min="0" value={editMinimo} onChange={e => setEditMinimo(Number(e.target.value))}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Stock Máximo *</label>
+                                <input type="number" min="1" value={editMaximo} onChange={e => setEditMaximo(Number(e.target.value))}
+                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => { setShowEditModal(false); setSelectedItem(null); }}
+                                style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                            <button onClick={() => {
+                                if (editMaximo <= editMinimo) { alert('El máximo debe ser mayor que el mínimo'); return; }
+                                setInventory(prev => prev.map(i => i.id === selectedItem.id ? {
+                                    ...i,
+                                    stockMinimo: editMinimo,
+                                    stockMaximo: editMaximo,
+                                    estado: i.stockActual === 0 ? 'agotado' : i.stockActual < editMinimo ? 'bajo' : i.stockActual > editMaximo ? 'exceso' : 'normal'
+                                } : i));
+                                setShowEditModal(false);
+                                setSelectedItem(null);
+                            }} style={{ padding: '0.75rem 1.5rem', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Guardar Cambios</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

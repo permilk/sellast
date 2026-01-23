@@ -5,6 +5,8 @@
 'use client';
 
 import { useState } from 'react';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
 
 // Datos de ejemplo
 const pedidos = [
@@ -46,6 +48,8 @@ function formatCurrency(amount: number) {
 export default function PedidosPage() {
     const [filtroStatus, setFiltroStatus] = useState('');
     const [busqueda, setBusqueda] = useState('');
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [selectedPedido, setSelectedPedido] = useState<typeof pedidos[0] | null>(null);
 
     const pedidosFiltrados = pedidos.filter(pedido => {
         const matchStatus = !filtroStatus || pedido.status === filtroStatus;
@@ -57,21 +61,57 @@ export default function PedidosPage() {
     });
 
     return (
-        <div className="pedidos-page">
-            <div className="page-header">
+        <div style={{ padding: '1.5rem' }}>
+            {/* Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
                 <div>
-                    <h1>Pedidos</h1>
-                    <p>Gestiona todos los pedidos de la tienda</p>
+                    <h1 style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 700,
+                        color: '#1f2937',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem'
+                    }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                            <rect x="9" y="3" width="6" height="4" rx="2" />
+                            <line x1="9" y1="12" x2="15" y2="12" />
+                            <line x1="9" y1="16" x2="13" y2="16" />
+                        </svg>
+                        Pedidos
+                    </h1>
+                    <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>Gestiona todos los pedidos de la tienda</p>
                 </div>
                 <button
                     className="btn-export"
-                    onClick={() => alert('Exportando pedidos...')}
+                    onClick={() => exportToExcel(
+                        pedidosFiltrados.map(p => ({
+                            'Número': p.id,
+                            Fecha: p.fecha,
+                            Cliente: p.cliente,
+                            Email: p.email,
+                            Total: `$${p.total.toFixed(2)}`,
+                            Estado: statusLabels[p.status].label
+                        })),
+                        'Pedidos_Sellast',
+                        'Pedidos'
+                    )}
                     style={{
-                        padding: '0.75rem 1.5rem',
-                        background: '#06B6D4',
-                        color: 'white',
-                        border: 'none',
+                        padding: '0.75rem 1rem',
+                        background: 'white',
+                        color: '#374151',
+                        border: '1px solid #D1D5DB',
                         borderRadius: '8px',
+                        fontSize: '0.9rem',
                         fontWeight: 600,
                         cursor: 'pointer',
                         display: 'flex',
@@ -88,24 +128,61 @@ export default function PedidosPage() {
                 </button>
             </div>
 
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Total Pedidos', value: pedidos.length, color: 'blue' },
+                { label: 'Pendientes', value: pedidos.filter(p => p.status === 'PENDING').length, color: 'amber' },
+                { label: 'Entregados', value: pedidos.filter(p => p.status === 'DELIVERED').length, color: 'green' },
+                { label: 'Cancelados', value: pedidos.filter(p => p.status === 'CANCELLED').length, color: 'red' }
+            ]} />
+
             {/* Filtros */}
-            <div className="filters-bar">
-                <input
-                    type="search"
-                    placeholder="Buscar por # pedido, cliente o email..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="search-input"
-                />
-                <select
-                    value={filtroStatus}
-                    onChange={(e) => setFiltroStatus(e.target.value)}
-                    className="filter-select"
-                >
-                    {statusOptions.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                </select>
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '1rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                alignItems: 'flex-end'
+            }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Buscar</label>
+                    <input
+                        type="text"
+                        placeholder="# pedido, cliente o email..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.6rem 1rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem'
+                        }}
+                    />
+                </div>
+                <div style={{ minWidth: '180px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Estado</label>
+                    <select
+                        value={filtroStatus}
+                        onChange={(e) => setFiltroStatus(e.target.value)}
+                        style={{
+                            padding: '0.6rem 1rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            minWidth: '160px',
+                            background: 'white'
+                        }}
+                    >
+                        {statusOptions.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Tabla de Pedidos */}
@@ -158,7 +235,7 @@ export default function PedidosPage() {
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         {/* Ver Pedido */}
                                         <button
-                                            onClick={() => alert(`Ver detalles del pedido: ${pedido.id}`)}
+                                            onClick={() => { setSelectedPedido(pedido); setShowDetalleModal(true); }}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -179,7 +256,7 @@ export default function PedidosPage() {
                                         </button>
                                         {/* Editar Pedido */}
                                         <button
-                                            onClick={() => alert(`Editar pedido: ${pedido.id}`)}
+                                            onClick={() => { setSelectedPedido(pedido); alert('Funcionalidad de edición en desarrollo'); }}
                                             style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -201,7 +278,7 @@ export default function PedidosPage() {
                                         {/* Cancelar Pedido - solo si no está entregado o cancelado */}
                                         {pedido.status !== 'DELIVERED' && pedido.status !== 'CANCELLED' && (
                                             <button
-                                                onClick={() => alert(`¿Cancelar pedido ${pedido.id}?`)}
+                                                onClick={() => { if (confirm(`¿Está seguro que desea cancelar el pedido ${pedido.id}?`)) { alert('Pedido cancelado'); } }}
                                                 style={{
                                                     width: '32px',
                                                     height: '32px',
@@ -412,6 +489,122 @@ export default function PedidosPage() {
                     color: #64748b;
                 }
             `}</style>
-        </div>
+
+            {/* Modal Detalle de Pedido */}
+            {showDetalleModal && selectedPedido && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        width: '90%',
+                        maxWidth: '600px',
+                        maxHeight: '80vh',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Detalle del Pedido</h3>
+                            <button
+                                onClick={() => { setShowDetalleModal(false); setSelectedPedido(null); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem' }}
+                            >×</button>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>ID Pedido</label>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>{selectedPedido.id}</p>
+                                </div>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Fecha</label>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>{selectedPedido.fecha}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Cliente</label>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>{selectedPedido.cliente}</p>
+                                </div>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Estado</label>
+                                    <span style={{
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '9999px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        background: selectedPedido.status === 'DELIVERED' ? '#DCFCE7' :
+                                            selectedPedido.status === 'SHIPPED' ? '#DBEAFE' :
+                                                selectedPedido.status === 'PROCESSING' ? '#FEF3C7' :
+                                                    selectedPedido.status === 'CANCELLED' ? '#FEE2E2' : '#F1F5F9',
+                                        color: selectedPedido.status === 'DELIVERED' ? '#166534' :
+                                            selectedPedido.status === 'SHIPPED' ? '#1E40AF' :
+                                                selectedPedido.status === 'PROCESSING' ? '#92400E' :
+                                                    selectedPedido.status === 'CANCELLED' ? '#DC2626' : '#475569'
+                                    }}>
+                                        {selectedPedido.status === 'DELIVERED' ? 'Entregado' :
+                                            selectedPedido.status === 'SHIPPED' ? 'Enviado' :
+                                                selectedPedido.status === 'PROCESSING' ? 'En Proceso' :
+                                                    selectedPedido.status === 'CANCELLED' ? 'Cancelado' : selectedPedido.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Artículos</label>
+                                <p style={{ margin: 0, fontWeight: 500 }}>{selectedPedido.items} artículo(s)</p>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Total</label>
+                                    <p style={{ margin: 0, fontWeight: 600, fontSize: '1.25rem', color: '#059669' }}>{selectedPedido.total}</p>
+                                </div>
+                                <div>
+                                    <label style={{ color: '#64748b', fontSize: '0.875rem' }}>Factura</label>
+                                    <p style={{ margin: 0, fontWeight: 500 }}>{selectedPedido.factura ? 'Sí' : 'No'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                            <button
+                                onClick={() => { setShowDetalleModal(false); setSelectedPedido(null); }}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    background: '#F1F5F9',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500
+                                }}
+                            >Cerrar</button>
+                            <button
+                                onClick={() => window.print()}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    background: '#2563EB',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500
+                                }}
+                            >Imprimir</button>
+                        </div>
+                    </div>
+                </div>
+            )
+            }
+        </div >
     );
 }

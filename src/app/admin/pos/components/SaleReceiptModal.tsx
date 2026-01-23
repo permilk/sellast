@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 interface CartItem {
     id: string;
@@ -23,31 +23,57 @@ interface SaleData {
     fecha: Date;
 }
 
+interface CompanyConfig {
+    name: string;
+    rfc: string;
+    address: string;
+    phone: string;
+    logo?: string;
+}
+
 interface SaleReceiptModalProps {
     isOpen: boolean;
     onClose: () => void;
     saleData: SaleData | null;
-    companyInfo?: {
-        name: string;
-        rfc: string;
-        address: string;
-        phone: string;
-        logo?: string;
-    };
+    companyInfo?: CompanyConfig;
 }
 
 export default function SaleReceiptModal({
     isOpen,
     onClose,
     saleData,
-    companyInfo = {
+    companyInfo
+}: SaleReceiptModalProps) {
+    const ticketRef = useRef<HTMLDivElement>(null);
+
+    // Load company config from localStorage
+    const [config, setConfig] = useState<CompanyConfig>({
         name: 'Mi Empresa',
         rfc: 'XAXX010101000',
         address: 'Av. Principal 123, CDMX',
         phone: '55 1234 5678'
-    }
-}: SaleReceiptModalProps) {
-    const ticketRef = useRef<HTMLDivElement>(null);
+    });
+
+    useEffect(() => {
+        const savedConfig = localStorage.getItem('sellast_config');
+        if (savedConfig) {
+            try {
+                const parsed = JSON.parse(savedConfig);
+                setConfig({
+                    name: parsed.nombreEmpresa || 'Mi Empresa',
+                    rfc: parsed.rfc || 'XAXX010101000',
+                    address: parsed.direccion || 'Av. Principal 123, CDMX',
+                    phone: parsed.telefono || '55 1234 5678',
+                    logo: parsed.logoUrl || undefined
+                });
+            } catch (e) {
+                console.error('Error loading config:', e);
+            }
+        }
+    }, [isOpen]); // Re-load when modal opens
+
+    // Use provided companyInfo or loaded config
+    const company = companyInfo || config;
 
     if (!isOpen || !saleData) return null;
 
@@ -71,12 +97,62 @@ export default function SaleReceiptModal({
     };
 
     const handleDownloadPDF = async () => {
-        // In production, use html2canvas + jsPDF
-        alert('Descargando PDF... (En producción se generará el archivo)');
+        // Use browser print as PDF option
+        handlePrint('A4');
     };
 
     const handlePrint = (size: '58mm' | '80mm' | 'A4') => {
-        alert(`Imprimiendo en formato ${size}...`);
+        const printContent = ticketRef.current;
+        if (!printContent) return;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Por favor permite ventanas emergentes para imprimir');
+            return;
+        }
+
+        const width = size === '58mm' ? '58mm' : size === '80mm' ? '80mm' : '210mm';
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Recibo - ${saleData.folio}</title>
+                <style>
+                    @page { 
+                        size: ${width} auto; 
+                        margin: 5mm; 
+                    }
+                    body { 
+                        font-family: 'Courier New', monospace; 
+                        padding: 10px;
+                        max-width: ${width};
+                        margin: 0 auto;
+                    }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { padding: 4px 2px; font-size: 12px; }
+                    .divider { border-top: 1px dashed #000; margin: 10px 0; }
+                    .center { text-align: center; }
+                    .right { text-align: right; }
+                    .bold { font-weight: bold; }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent.innerHTML}
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
     };
 
     const modalStyles: React.CSSProperties = {
@@ -158,25 +234,39 @@ export default function SaleReceiptModal({
                     >
                         {/* Company Logo & Info */}
                         <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                            <div style={{
-                                width: '60px',
-                                height: '60px',
-                                background: '#1f2937',
-                                borderRadius: '50%',
-                                margin: '0 auto 0.75rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                                    <polyline points="9 22 9 12 15 12 15 22" />
-                                </svg>
-                            </div>
-                            <div style={{ fontWeight: 700, fontSize: '1rem' }}>{companyInfo.name}</div>
-                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>RFC: {companyInfo.rfc}</div>
-                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{companyInfo.address}</div>
-                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Tel: {companyInfo.phone}</div>
+                            {company.logo ? (
+                                <img
+                                    src={company.logo}
+                                    alt={company.name}
+                                    style={{
+                                        width: '60px',
+                                        height: '60px',
+                                        borderRadius: '50%',
+                                        margin: '0 auto 0.75rem',
+                                        objectFit: 'cover'
+                                    }}
+                                />
+                            ) : (
+                                <div style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    background: '#1f2937',
+                                    borderRadius: '50%',
+                                    margin: '0 auto 0.75rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                        <polyline points="9 22 9 12 15 12 15 22" />
+                                    </svg>
+                                </div>
+                            )}
+                            <div style={{ fontWeight: 700, fontSize: '1rem' }}>{company.name}</div>
+                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>RFC: {company.rfc}</div>
+                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{company.address}</div>
+                            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>Tel: {company.phone}</div>
                         </div>
 
                         {/* Divider */}

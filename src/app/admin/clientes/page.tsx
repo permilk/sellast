@@ -1,70 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AccountsReceivableModal from './components/AccountsReceivableModal';
 import CustomerModal from './components/CustomerModal';
-
-interface Customer {
-    id: string;
-    documento: string;
-    nombre: string;
-    tipo: 'mayorista' | 'minorista';
-    telefono: string;
-    email: string;
-    totalCompras: number;
-}
-
-const mockCustomers: Customer[] = [
-    { id: '1', documento: '45214589', nombre: 'Cristiano Ronaldo', tipo: 'mayorista', telefono: '55 1234 5678', email: 'cr7@email.com', totalCompras: 1700.00 },
-    { id: '2', documento: '42201458', nombre: 'Lionel Messi', tipo: 'minorista', telefono: '55 9876 5432', email: 'messi@email.com', totalCompras: 325.00 },
-    { id: '3', documento: '45780205', nombre: 'Cristian Cueva', tipo: 'minorista', telefono: '55 5555 1234', email: 'cueva@email.com', totalCompras: 0.00 },
-];
+import { KPISummary } from '@/components/admin/KPISummary';
+import { getClients, addClient, updateClient, deleteClient, Client } from '@/stores/clientsStore';
 
 export default function ClientesPage() {
-    const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+    const [customers, setCustomers] = useState<Client[]>([]);
     const [showAccountsModal, setShowAccountsModal] = useState(false);
     const [showCustomerModal, setShowCustomerModal] = useState(false);
-    const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+    const [editingCustomer, setEditingCustomer] = useState<Client | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [tipoFilter, setTipoFilter] = useState('');
 
-    const filteredCustomers = customers.filter(c =>
-        c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.documento.includes(searchTerm)
-    );
+    // Load from store
+    useEffect(() => {
+        setCustomers(getClients());
+    }, []);
+
+    const filteredCustomers = customers.filter(c => {
+        const matchSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.documento.includes(searchTerm);
+        const matchTipo = !tipoFilter || c.tipo === tipoFilter;
+        return matchSearch && matchTipo;
+    });
 
     const handleAddCustomer = () => {
         setEditingCustomer(null);
         setShowCustomerModal(true);
     };
 
-    const handleEditCustomer = (customer: Customer) => {
+    const handleEditCustomer = (customer: Client) => {
         setEditingCustomer(customer);
         setShowCustomerModal(true);
     };
 
-    const handleSaveCustomer = (data: Partial<Customer>) => {
+    const handleSaveCustomer = (data: Partial<Client>) => {
         if (editingCustomer) {
-            setCustomers(prev => prev.map(c =>
-                c.id === editingCustomer.id ? { ...c, ...data } : c
-            ));
+            updateClient(editingCustomer.id, data);
         } else {
-            const newCustomer: Customer = {
-                id: Date.now().toString(),
+            addClient({
                 documento: data.documento || '',
                 nombre: data.nombre || '',
                 tipo: data.tipo || 'minorista',
                 telefono: data.telefono || '',
                 email: data.email || '',
                 totalCompras: 0
-            };
-            setCustomers(prev => [...prev, newCustomer]);
+            });
         }
+        setCustomers(getClients());
         setShowCustomerModal(false);
     };
 
     const handleDeleteCustomer = (id: string) => {
         if (confirm('¿Estás seguro de eliminar este cliente?')) {
-            setCustomers(prev => prev.filter(c => c.id !== id));
+            deleteClient(id);
+            setCustomers(getClients());
         }
     };
 
@@ -122,7 +114,7 @@ export default function ClientesPage() {
                             <rect x="1" y="4" width="22" height="16" rx="2" />
                             <line x1="1" y1="10" x2="23" y2="10" />
                         </svg>
-                        Cuentas por Pagar
+                        Cuentas por Cobrar
                     </button>
                     <button
                         onClick={handleAddCustomer}
@@ -149,33 +141,60 @@ export default function ClientesPage() {
                 </div>
             </div>
 
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Total Clientes', value: customers.length, color: 'blue' },
+                { label: 'Mayoristas', value: customers.filter((c: Client) => c.tipo === 'mayorista').length, color: 'green' },
+                { label: 'Minoristas', value: customers.filter((c: Client) => c.tipo === 'minorista').length, color: 'amber' },
+                { label: 'Total Compras', value: customers.reduce((sum: number, c: Client) => sum + c.totalCompras, 0).toFixed(2), color: 'purple', prefix: '$ ' }
+            ]} />
+
             {/* Search */}
-            <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ position: 'relative', maxWidth: '400px' }}>
-                    <svg
-                        width="20" height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#9ca3af"
-                        strokeWidth="2"
-                        style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }}
-                    >
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '1rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                alignItems: 'flex-end'
+            }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Buscar</label>
                     <input
                         type="text"
-                        placeholder="Buscar por nombre o documento..."
+                        placeholder="Nombre o documento..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '0.75rem 1rem 0.75rem 3rem',
+                            padding: '0.6rem 1rem',
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
-                            fontSize: '0.95rem'
+                            fontSize: '0.9rem'
                         }}
                     />
+                </div>
+                <div style={{ minWidth: '180px' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Tipo</label>
+                    <select
+                        value={tipoFilter}
+                        onChange={e => setTipoFilter(e.target.value)}
+                        style={{
+                            padding: '0.6rem 1rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.9rem',
+                            minWidth: '160px',
+                            background: 'white'
+                        }}
+                    >
+                        <option value="">Todos</option>
+                        <option value="mayorista">Mayorista</option>
+                        <option value="minorista">Minorista</option>
+                    </select>
                 </div>
             </div>
 

@@ -1,125 +1,218 @@
 'use client';
 
 // ============================================
-// ADMIN - DASHBOARD (ENTERPRISE)
+// ADMIN - DASHBOARD (BRANCH-AWARE)
 // ============================================
 
 import Link from 'next/link';
+import { useBranchStore } from '@/stores/branchStore';
+import { getKPIsForBranch, getCajaForBranch, getBranchManager } from '@/stores/branchData';
 
 export default function AdminDashboard() {
+    const { currentBranch, currentBranchId } = useBranchStore();
+
+    // Get branch-specific data
+    const kpis = getKPIsForBranch(currentBranchId || 'branch-1');
+    const caja = getCajaForBranch(currentBranchId || 'branch-1');
+    const manager = getBranchManager(currentBranchId || 'branch-1');
+
     return (
-        <div className="dashboard-container">
-            <div className="welcome-section">
-                <h1>Panel de Control</h1>
-                <p>Bienvenido de nuevo, Admin. Aquí está lo que sucede en tu tienda hoy.</p>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="kpi-grid">
-                <div className="kpi-card highlight">
-                    <div className="kpi-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-                    </div>
-                    <div className="kpi-content">
-                        <span className="kpi-label">Ventas Hoy</span>
-                        <span className="kpi-value">$12,450.00</span>
-                        <span className="kpi-trend positive">+15% vs ayer</span>
-                    </div>
+        <div style={{ padding: '1.5rem' }}>
+            <div className="dashboard-container">
+                <div className="welcome-section">
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2">
+                            <rect x="3" y="3" width="7" height="9" />
+                            <rect x="14" y="3" width="7" height="5" />
+                            <rect x="14" y="12" width="7" height="9" />
+                            <rect x="3" y="16" width="7" height="5" />
+                        </svg>
+                        Panel de Control
+                    </h1>
+                    <p>
+                        <strong style={{ color: '#6366F1' }}>{currentBranch?.name || 'Sucursal'}</strong>
+                        {' '} • Gerente: {manager?.name || 'Sin asignar'}
+                    </p>
                 </div>
 
-                <div className="kpi-card">
-                    <div className="kpi-icon blue">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
-                    </div>
-                    <div className="kpi-content">
-                        <span className="kpi-label">Pedidos Pendientes</span>
-                        <span className="kpi-value">8</span>
-                        <span className="kpi-sub">3 por despachar</span>
-                    </div>
-                </div>
-
-                <div className="kpi-card">
-                    <div className="kpi-icon purple">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                    </div>
-                    <div className="kpi-content">
-                        <span className="kpi-label">Clientes Nuevos</span>
-                        <span className="kpi-value">12</span>
-                        <span className="kpi-trend positive">+5 este mes</span>
-                    </div>
-                </div>
-
-                <div className="kpi-card">
-                    <div className="kpi-icon orange">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                    </div>
-                    <div className="kpi-content">
-                        <span className="kpi-label">Stock Bajo</span>
-                        <span className="kpi-value">5</span>
-                        <span className="kpi-sub">Artículos requieren atención</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="content-grid">
-                {/* Chart Section (Mock) */}
-                <div className="main-chart-panel">
-                    <div className="panel-header">
-                        <h3>Resumen de Ingresos</h3>
-                        <select className="chart-select">
-                            <option>Esta Semana</option>
-                            <option>Este Mes</option>
-                        </select>
-                    </div>
-                    <div className="chart-placeholder">
-                        {/* Visual representation of a chart using CSS bars */}
-                        <div className="bar-group"><div className="bar" style={{ height: '40%' }}></div><span>Lun</span></div>
-                        <div className="bar-group"><div className="bar" style={{ height: '65%' }}></div><span>Mar</span></div>
-                        <div className="bar-group"><div className="bar" style={{ height: '55%' }}></div><span>Mié</span></div>
-                        <div className="bar-group"><div className="bar" style={{ height: '80%' }}></div><span>Jue</span></div>
-                        <div className="bar-group"><div className="bar active" style={{ height: '90%' }}></div><span>Vie</span></div>
-                        <div className="bar-group"><div className="bar" style={{ height: '70%' }}></div><span>Sáb</span></div>
-                        <div className="bar-group"><div className="bar" style={{ height: '50%' }}></div><span>Dom</span></div>
-                    </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="side-panel">
-                    <h3>Actividad Reciente</h3>
-                    <div className="activity-list">
-                        <div className="activity-item">
-                            <div className="act-icon sale">V</div>
-                            <div className="act-info">
-                                <span className="act-title">Nueva Venta POS</span>
-                                <span className="act-time">Hace 5 min</span>
+                {/* Branch Info Banner */}
+                {currentBranch && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem 1.5rem',
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{
+                                width: '48px',
+                                height: '48px',
+                                background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                                borderRadius: '12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white'
+                            }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
                             </div>
-                            <span className="act-amount">+$850</span>
-                        </div>
-                        <div className="activity-item">
-                            <div className="act-icon order">P</div>
-                            <div className="act-info">
-                                <span className="act-title">Pedido Web #2024</span>
-                                <span className="act-time">Hace 25 min</span>
+                            <div>
+                                <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '1.1rem' }}>
+                                    {currentBranch.name}
+                                    {currentBranch.isMain && (
+                                        <span style={{
+                                            marginLeft: '0.5rem',
+                                            fontSize: '0.7rem',
+                                            background: 'rgba(16, 185, 129, 0.2)',
+                                            color: '#059669',
+                                            padding: '2px 8px',
+                                            borderRadius: '4px'
+                                        }}>PRINCIPAL</span>
+                                    )}
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
+                                    {currentBranch.address}
+                                </div>
                             </div>
-                            <span className="act-amount">+$1,200</span>
                         </div>
-                        <div className="activity-item">
-                            <div className="act-icon expense">−</div>
-                            <div className="act-info">
-                                <span className="act-title">Pago Proveedor</span>
-                                <span className="act-time">Hace 2 horas</span>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                color: caja.isOpen ? '#059669' : '#DC2626',
+                                fontWeight: 600,
+                                fontSize: '0.9rem'
+                            }}>
+                                <span style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    background: caja.isOpen ? '#059669' : '#DC2626'
+                                }}></span>
+                                Caja {caja.isOpen ? 'Abierta' : 'Cerrada'}
                             </div>
-                            <span className="act-amount neg">-$5,000</span>
+                            {caja.isOpen && (
+                                <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                                    Cajero: {caja.cashier}
+                                </div>
+                            )}
                         </div>
-                        <Link href="/admin/caja" className="view-more">Ver todos los movimientos →</Link>
+                    </div>
+                )}
+
+                {/* KPI Cards - Now Dynamic */}
+                <div className="kpi-grid">
+                    <div className="kpi-card highlight">
+                        <div className="kpi-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                        </div>
+                        <div className="kpi-content">
+                            <span className="kpi-label">Ventas Hoy</span>
+                            <span className="kpi-value">${kpis.ventasHoy.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                            <span className="kpi-trend positive">+15% vs ayer</span>
+                        </div>
+                    </div>
+
+                    <div className="kpi-card">
+                        <div className="kpi-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
+                        </div>
+                        <div className="kpi-content">
+                            <span className="kpi-label">Productos Vendidos</span>
+                            <span className="kpi-value">{kpis.productosVendidos}</span>
+                            <span className="kpi-sub">En esta sucursal</span>
+                        </div>
+                    </div>
+
+                    <div className="kpi-card">
+                        <div className="kpi-icon purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                        </div>
+                        <div className="kpi-content">
+                            <span className="kpi-label">Clientes Atendidos</span>
+                            <span className="kpi-value">{kpis.clientesAtendidos}</span>
+                            <span className="kpi-trend positive">Hoy</span>
+                        </div>
+                    </div>
+
+                    <div className="kpi-card">
+                        <div className="kpi-icon orange">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                        </div>
+                        <div className="kpi-content">
+                            <span className="kpi-label">Ticket Promedio</span>
+                            <span className="kpi-value">${kpis.ticketPromedio.toFixed(2)}</span>
+                            <span className="kpi-sub">Por cliente</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <style jsx>{`
+                <div className="content-grid">
+                    {/* Chart Section */}
+                    <div className="main-chart-panel">
+                        <div className="panel-header">
+                            <h3>Resumen de Ingresos - {currentBranch?.name}</h3>
+                            <select className="chart-select">
+                                <option>Esta Semana</option>
+                                <option>Este Mes</option>
+                            </select>
+                        </div>
+                        <div className="chart-placeholder">
+                            <div className="bar-group"><div className="bar" style={{ height: '40%' }}></div><span>Lun</span></div>
+                            <div className="bar-group"><div className="bar" style={{ height: '65%' }}></div><span>Mar</span></div>
+                            <div className="bar-group"><div className="bar" style={{ height: '55%' }}></div><span>Mié</span></div>
+                            <div className="bar-group"><div className="bar" style={{ height: '80%' }}></div><span>Jue</span></div>
+                            <div className="bar-group"><div className="bar active" style={{ height: '90%' }}></div><span>Vie</span></div>
+                            <div className="bar-group"><div className="bar" style={{ height: '70%' }}></div><span>Sáb</span></div>
+                            <div className="bar-group"><div className="bar" style={{ height: '50%' }}></div><span>Dom</span></div>
+                        </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="side-panel">
+                        <h3>Actividad - {currentBranch?.code}</h3>
+                        <div className="activity-list">
+                            <div className="activity-item">
+                                <div className="act-icon sale">V</div>
+                                <div className="act-info">
+                                    <span className="act-title">Nueva Venta POS</span>
+                                    <span className="act-time">Hace 5 min</span>
+                                </div>
+                                <span className="act-amount">+$850</span>
+                            </div>
+                            <div className="activity-item">
+                                <div className="act-icon order">P</div>
+                                <div className="act-info">
+                                    <span className="act-title">Pedido Web #2024</span>
+                                    <span className="act-time">Hace 25 min</span>
+                                </div>
+                                <span className="act-amount">+$1,200</span>
+                            </div>
+                            <div className="activity-item">
+                                <div className="act-icon expense">−</div>
+                                <div className="act-info">
+                                    <span className="act-title">Pago Proveedor</span>
+                                    <span className="act-time">Hace 2 horas</span>
+                                </div>
+                                <span className="act-amount neg">-$5,000</span>
+                            </div>
+                            <Link href="/admin/caja" className="view-more">Ver todos los movimientos →</Link>
+                        </div>
+                    </div>
+                </div>
+
+                <style jsx>{`
                 .dashboard-container { max-width: 100%; }
                 
-                .welcome-section { margin-bottom: 2rem; }
+                .welcome-section { margin-bottom: 1.5rem; }
                 .welcome-section h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
                 .welcome-section p { color: #64748b; }
                 
@@ -178,6 +271,7 @@ export default function AdminDashboard() {
                     .content-grid { grid-template-columns: 1fr; }
                 }
             `}</style>
+            </div>
         </div>
     );
 }

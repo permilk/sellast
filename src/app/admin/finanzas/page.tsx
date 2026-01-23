@@ -1,120 +1,230 @@
 'use client';
 
+import { useState } from 'react';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
+
 export default function FinanzasPage() {
     return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-serif text-white mb-6">Finanzas</h1>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="kpi-card">
-                    <h3 className="kpi-title">Ingresos Totales (Mes)</h3>
-                    <div className="kpi-value text-emerald-400">$ 45,231.80</div>
-                    <div className="kpi-trend positive">
-                        <span>↑ 12.5%</span> vs mes anterior
-                    </div>
+        <div style={{ padding: '1.5rem' }}>
+            {/* Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
+                <div>
+                    <h1 style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 700,
+                        color: '#1f2937',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.25rem'
+                    }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2">
+                            <line x1="12" y1="20" x2="12" y2="10" />
+                            <line x1="18" y1="20" x2="18" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="16" />
+                        </svg>
+                        Finanzas
+                    </h1>
+                    <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                        Reportes financieros y análisis de ventas
+                    </p>
                 </div>
-                <div className="kpi-card">
-                    <h3 className="kpi-title">Pedidos Completados</h3>
-                    <div className="kpi-value text-blue-400">142</div>
-                    <div className="kpi-trend positive">
-                        <span>↑ 8.2%</span> vs mes anterior
-                    </div>
-                </div>
-                <div className="kpi-card">
-                    <h3 className="kpi-title">Ticket Promedio</h3>
-                    <div className="kpi-value text-pink-400">$ 318.50</div>
-                    <div className="kpi-trend negative">
-                        <span>↓ 2.1%</span> vs mes anterior
-                    </div>
-                </div>
+                <button
+                    onClick={() => exportToExcel(
+                        [
+                            { Concepto: 'Ventas Hoy', Monto: '$12,450.00' },
+                            { Concepto: 'Gastos Hoy', Monto: '$3,200.00' },
+                            { Concepto: 'Utilidad Neta', Monto: '$9,250.00' }
+                        ],
+                        'Reporte_Financiero_Sellast',
+                        'Finanzas'
+                    )}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        background: 'white',
+                        color: '#374151',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Exportar
+                </button>
             </div>
 
-            {/* Main Chart Area Placeholder */}
-            <div className="content-card h-80 flex items-center justify-center bg-opacity-50 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="text-center">
-                    <h3 className="text-xl font-light text-slate-400 mb-2">Resumen de Ventas Anual</h3>
-                    <p className="text-sm text-slate-500">Visualización gráfica en desarrollo</p>
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Ingresos (Mes)', value: '45,231.80', color: 'green', prefix: '$ ' },
+                { label: 'Pedidos Completados', value: 142, color: 'blue' },
+                { label: 'Ticket Promedio', value: '318.50', color: 'purple', prefix: '$ ' },
+                { label: 'Gastos (Mes)', value: '12,450.00', color: 'red', prefix: '$ ' }
+            ]} />
 
-                    {/* Mock Bars */}
-                    <div className="flex items-end gap-2 mt-8 h-32 opacity-50">
-                        <div className="w-8 bg-pink-500/80 rounded-t-sm h-12"></div>
-                        <div className="w-8 bg-pink-500/60 rounded-t-sm h-20"></div>
-                        <div className="w-8 bg-pink-500/90 rounded-t-sm h-16"></div>
-                        <div className="w-8 bg-pink-500/40 rounded-t-sm h-24"></div>
-                        <div className="w-8 bg-pink-500/70 rounded-t-sm h-14"></div>
-                        <div className="w-8 bg-pink-500/50 rounded-t-sm h-28"></div>
-                    </div>
-                </div>
-            </div>
+            {/* Annual Sales Chart */}
+            {(() => {
+                const ventasMensuales = [
+                    { mes: 'Ene', monto: 32500 },
+                    { mes: 'Feb', monto: 28400 },
+                    { mes: 'Mar', monto: 35600 },
+                    { mes: 'Abr', monto: 42100 },
+                    { mes: 'May', monto: 38700 },
+                    { mes: 'Jun', monto: 45200 },
+                    { mes: 'Jul', monto: 52800 },
+                    { mes: 'Ago', monto: 48900 },
+                    { mes: 'Sep', monto: 41300 },
+                    { mes: 'Oct', monto: 44600 },
+                    { mes: 'Nov', monto: 51200 },
+                    { mes: 'Dic', monto: 58400 }
+                ];
+                const maxVenta = Math.max(...ventasMensuales.map(v => v.monto));
+                const totalAnual = ventasMensuales.reduce((acc, v) => acc + v.monto, 0);
 
-            {/* Recent Transactions Table */}
-            <div className="content-card">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-serif text-white">Últimas Transacciones</h2>
-                    <button className="text-sm text-pink-500 hover:text-pink-400 transition-colors" onClick={() => alert('Navegar a historial de transacciones')}>Ver Todo</button>
-                </div>
+                return (
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ fontSize: '1.1rem', color: '#1f2937', fontWeight: 600 }}>Resumen de Ventas Anual 2026</h3>
+                            <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>Total: <strong style={{ color: '#10B981' }}>${totalAnual.toLocaleString()}</strong></span>
+                        </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-slate-800/60 text-xs uppercase text-slate-500">
-                                <th className="py-3 font-semibold tracking-wider">ID Transacción</th>
-                                <th className="py-3 font-semibold tracking-wider">Fecha</th>
-                                <th className="py-3 font-semibold tracking-wider">Cliente</th>
-                                <th className="py-3 font-semibold tracking-wider">Estado</th>
-                                <th className="py-3 font-semibold tracking-wider text-right">Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm text-slate-300">
-                            {[1, 2, 3, 4, 5].map((item) => (
-                                <tr key={item} className="border-b border-slate-800/30 hover:bg-white/5 transition-colors">
-                                    <td className="py-4 font-mono text-slate-500">#TR-{202400 + item}</td>
-                                    <td className="py-4">2{item} Ene, 2024</td>
-                                    <td className="py-4 font-medium text-white">Cliente Ejemplo {item}</td>
-                                    <td className="py-4">
-                                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            Completado
-                                        </span>
-                                    </td>
-                                    <td className="py-4 text-right font-medium">$ {item * 150}.00</td>
-                                </tr>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            gap: '0.5rem',
+                            height: '200px',
+                            padding: '1rem 0',
+                            borderBottom: '2px solid #E5E7EB'
+                        }}>
+                            {ventasMensuales.map((item, index) => {
+                                const height = (item.monto / maxVenta) * 160;
+                                return (
+                                    <div
+                                        key={item.mes}
+                                        style={{
+                                            flex: 1,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '100%',
+                                                maxWidth: '40px',
+                                                background: `linear-gradient(180deg, #7C3AED 0%, #A78BFA 100%)`,
+                                                borderRadius: '4px 4px 0 0',
+                                                height: `${height}px`,
+                                                transition: 'all 0.3s ease',
+                                                cursor: 'pointer',
+                                                position: 'relative'
+                                            }}
+                                            title={`${item.mes}: $${item.monto.toLocaleString()}`}
+                                            onMouseEnter={(e) => {
+                                                (e.target as HTMLElement).style.transform = 'scaleY(1.05)';
+                                                (e.target as HTMLElement).style.opacity = '0.9';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                (e.target as HTMLElement).style.transform = 'scaleY(1)';
+                                                (e.target as HTMLElement).style.opacity = '1';
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            marginTop: '0.5rem'
+                        }}>
+                            {ventasMensuales.map((item) => (
+                                <div
+                                    key={`label-${item.mes}`}
+                                    style={{
+                                        flex: 1,
+                                        textAlign: 'center',
+                                        fontSize: '0.75rem',
+                                        color: '#6B7280',
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    {item.mes}
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Transactions Table */}
+            <div style={{
+                background: 'white',
+                borderRadius: '12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                overflow: 'hidden'
+            }}>
+                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1f2937' }}>Últimas Transacciones</h2>
+                    <button style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}>
+                        Ver Todo
+                    </button>
                 </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ background: '#f9fafb' }}>
+                            <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>ID Transacción</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Fecha</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Cliente</th>
+                            <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Estado</th>
+                            <th style={{ padding: '0.75rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[1, 2, 3, 4, 5].map((item) => (
+                            <tr key={item} style={{ borderTop: '1px solid #e5e7eb' }}>
+                                <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: '#6b7280' }}>#TR-{202400 + item}</td>
+                                <td style={{ padding: '1rem' }}>2{item} Ene, 2024</td>
+                                <td style={{ padding: '1rem', fontWeight: 500, color: '#1f2937' }}>Cliente Ejemplo {item}</td>
+                                <td style={{ padding: '1rem' }}>
+                                    <span style={{
+                                        padding: '0.25rem 0.75rem',
+                                        borderRadius: '9999px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        background: '#D1FAE5',
+                                        color: '#059669'
+                                    }}>Completado</span>
+                                </td>
+                                <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600 }}>$ {item * 150}.00</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
-
-            <style jsx>{`
-                .kpi-card {
-                    background: var(--bg-panel);
-                    border: 1px solid var(--border);
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                    position: relative;
-                    overflow: hidden;
-                }
-                .kpi-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; width: 4px; height: 100%;
-                    background: var(--border-light);
-                    opacity: 0.5;
-                }
-                .kpi-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-                .kpi-value { font-size: 2rem; font-weight: 700; font-family: 'Outfit', sans-serif; margin-bottom: 0.25rem; }
-                .kpi-trend { font-size: 0.8rem; color: var(--text-muted); }
-                .kpi-trend.positive span { color: #34d399; font-weight: 600; }
-                .kpi-trend.negative span { color: #f87171; font-weight: 600; }
-
-                .content-card {
-                    background: var(--bg-panel);
-                    border: 1px solid var(--border);
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                }
-            `}</style>
         </div>
     );
 }

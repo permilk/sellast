@@ -5,6 +5,8 @@
 // ============================================
 
 import { useState } from 'react';
+import { exportToExcel } from '@/utils/exportExcel';
+import { KPISummary } from '@/components/admin/KPISummary';
 
 interface ProductoVencimiento {
     id: string;
@@ -44,6 +46,8 @@ export default function VencimientosPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [categoriaFilter, setCategoriaFilter] = useState('Todas');
     const [estadoFilter, setEstadoFilter] = useState('todos');
+    const [showDetalleModal, setShowDetalleModal] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<ProductoVencimiento | null>(null);
 
     const filteredProductos = productos.filter(p => {
         const matchSearch = p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,13 +64,23 @@ export default function VencimientosPage() {
     const valorEnRiesgo = [...vencidos, ...criticos].reduce((sum, p) => sum + (p.stock * 50), 0); // Precio estimado
 
     const handleDescartar = (id: string) => {
-        if (confirm('¿Marcar este producto como descartado/dado de baja?')) {
-            alert(`Producto ${id} marcado como descartado. En producción esto actualizaría la base de datos.`);
+        const producto = productos.find(p => p.id === id);
+        if (confirm(`¿Marcar "${producto?.nombre}" como descartado/dado de baja?`)) {
+            // En producción esto actualizaría la base de datos
+            setSelectedItem(null);
+            setShowDetalleModal(false);
         }
     };
 
     const handlePromocion = (id: string) => {
-        alert(`Crear promoción para producto ${id}. Este flujo abriría el módulo de promociones.`);
+        const producto = productos.find(p => p.id === id);
+        setSelectedItem(producto || null);
+        setShowDetalleModal(true);
+    };
+
+    const handleVerDetalle = (item: ProductoVencimiento) => {
+        setSelectedItem(item);
+        setShowDetalleModal(true);
     };
 
     return (
@@ -87,11 +101,24 @@ export default function VencimientosPage() {
                     <p style={{ color: 'var(--color-gray-500)', fontSize: '0.9rem' }}>Monitorea productos próximos a vencer y gestiona mermas</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button onClick={() => alert('Generando reporte de vencimientos...')} className="btn btn-secondary">
+                    <button onClick={() => exportToExcel(
+                        filteredProductos.map(p => ({
+                            SKU: p.sku,
+                            Nombre: p.nombre,
+                            Lote: p.lote,
+                            Categoría: p.categoria,
+                            Stock: p.stock,
+                            Vencimiento: p.fechaVencimiento,
+                            'Días Restantes': p.diasRestantes,
+                            Estado: estadoConfig[p.estado].label
+                        })),
+                        'Vencimientos_Sellast',
+                        'Vencimientos'
+                    )} className="btn btn-secondary">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Exportar Reporte
+                        Exportar
                     </button>
                 </div>
             </div>
@@ -132,25 +159,13 @@ export default function VencimientosPage() {
                 </div>
             )}
 
-            {/* KPIs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-danger)' }}>
-                    <p className="kpi-label">Vencidos</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-danger)' }}>{vencidos.length}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-warning)' }}>
-                    <p className="kpi-label">Críticos (&lt;7 días)</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-warning)' }}>{criticos.length}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-info)' }}>
-                    <p className="kpi-label">Próximos (&lt;30 días)</p>
-                    <p className="kpi-value" style={{ color: 'var(--color-info)' }}>{proximos.length}</p>
-                </div>
-                <div className="kpi-card" style={{ borderLeftColor: 'var(--color-gray-400)' }}>
-                    <p className="kpi-label">Total Monitoreados</p>
-                    <p className="kpi-value">{productos.length}</p>
-                </div>
-            </div>
+            {/* KPI Summary */}
+            <KPISummary cards={[
+                { label: 'Vencidos', value: vencidos.length, color: 'red' },
+                { label: 'Críticos (<7 días)', value: criticos.length, color: 'amber' },
+                { label: 'Próximos (<30 días)', value: proximos.length, color: 'cyan' },
+                { label: 'Total Monitoreados', value: productos.length, color: 'gray' }
+            ]} />
 
             {/* Filters */}
             <div className="card" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -265,7 +280,7 @@ export default function VencimientosPage() {
                                                         </svg>
                                                     </button>
                                                 )}
-                                                <button onClick={() => alert(`Ver historial de ${item.nombre}`)} className="btn-action btn-action-view" title="Ver Detalles">
+                                                <button onClick={() => handleVerDetalle(item)} className="btn-action btn-action-view" title="Ver Detalles">
                                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                                 </button>
                                             </div>
@@ -282,6 +297,61 @@ export default function VencimientosPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal Detalle de Producto */}
+            {showDetalleModal && selectedItem && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '500px', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={estadoConfig[selectedItem.estado].color} strokeWidth="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                            </svg>
+                            {selectedItem.nombre}
+                        </h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>SKU</p>
+                                <p style={{ fontWeight: 500, margin: 0, fontFamily: 'monospace' }}>{selectedItem.sku}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>LOTE</p>
+                                <p style={{ fontWeight: 500, margin: 0, fontFamily: 'monospace' }}>{selectedItem.lote}</p>
+                            </div>
+                            <div style={{ background: estadoConfig[selectedItem.estado].bg, padding: '1rem', borderRadius: '8px', border: `2px solid ${estadoConfig[selectedItem.estado].borderColor}` }}>
+                                <p style={{ fontSize: '0.75rem', color: estadoConfig[selectedItem.estado].color, marginBottom: '0.25rem' }}>VENCIMIENTO</p>
+                                <p style={{ fontWeight: 700, margin: 0, color: estadoConfig[selectedItem.estado].color }}>{selectedItem.fechaVencimiento}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>DÍAS RESTANTES</p>
+                                <p style={{ fontWeight: 700, fontSize: '1.25rem', margin: 0, color: selectedItem.diasRestantes <= 0 ? 'var(--color-danger)' : selectedItem.diasRestantes <= 7 ? '#D97706' : '#111827' }}>
+                                    {selectedItem.diasRestantes <= 0 ? selectedItem.diasRestantes : `+${selectedItem.diasRestantes}`}
+                                </p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>STOCK</p>
+                                <p style={{ fontWeight: 700, fontSize: '1.25rem', margin: 0 }}>{selectedItem.stock}</p>
+                            </div>
+                            <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>CATEGORÍA</p>
+                                <p style={{ fontWeight: 500, margin: 0 }}>{selectedItem.categoria}</p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <button onClick={() => { setShowDetalleModal(false); setSelectedItem(null); }}
+                                style={{ padding: '0.75rem 1.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
+                            {selectedItem.estado === 'vencido' && (
+                                <button onClick={() => handleDescartar(selectedItem.id)}
+                                    style={{ padding: '0.75rem 1.5rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Marcar como Descartado</button>
+                            )}
+                            {(selectedItem.estado === 'critico' || selectedItem.estado === 'proximo') && (
+                                <button onClick={() => { setShowDetalleModal(false); }}
+                                    style={{ padding: '0.75rem 1.5rem', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Crear Promoción</button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
