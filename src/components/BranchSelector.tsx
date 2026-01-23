@@ -73,6 +73,7 @@ export default function BranchSelector() {
         <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                className="branch-selector-btn"
                 style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -92,7 +93,7 @@ export default function BranchSelector() {
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <span>{currentBranch?.name || 'Seleccionar sucursal'}</span>
+                <span className="branch-name">{currentBranch?.name || 'Seleccionar sucursal'}</span>
                 <svg
                     width="14"
                     height="14"
@@ -100,6 +101,7 @@ export default function BranchSelector() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
+                    className="branch-arrow"
                     style={{
                         transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                         transition: 'transform 0.2s'

@@ -723,32 +723,50 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     .main-content { margin-left: 0; }
                     
                     .top-bar { 
-                        padding: 0 0.75rem; 
-                        height: 56px;
-                        gap: 0.5rem;
+                        padding: 0 0.5rem; 
+                        height: 52px;
+                        gap: 0.35rem;
                     }
                     
                     .top-actions { 
-                        gap: 0.5rem; 
+                        gap: 0.35rem; 
                         flex-shrink: 0;
                     }
                     
                     .icon-btn { 
-                        width: 36px; 
-                        height: 36px; 
-                        border-radius: 10px;
-                    }
-                    
-                    .btn-store { 
-                        padding: 0.4rem 0.6rem;
-                        font-size: 0.75rem;
+                        width: 34px; 
+                        height: 34px; 
                         border-radius: 8px;
                     }
-                    .btn-store svg { width: 14px; height: 14px; }
+                    .icon-btn svg { width: 16px; height: 16px; }
                     
-                    .breadcrumb { font-size: 0.8rem; }
+                    /* Hide Ver Tienda text, show only icon */
+                    .btn-store { 
+                        padding: 0.5rem;
+                        font-size: 0;
+                        min-width: 34px;
+                        height: 34px;
+                        justify-content: center;
+                        border-radius: 8px;
+                    }
+                    .btn-store svg { width: 16px; height: 16px; }
                     
-                    .page-content { padding: 1rem; }
+                    /* Compact branch selector */
+                    .branch-selector-btn {
+                        padding: 0.4rem 0.6rem !important;
+                        font-size: 0.75rem !important;
+                    }
+                    .branch-name { 
+                        max-width: 80px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    .branch-arrow { width: 12px !important; height: 12px !important; }
+                    
+                    .breadcrumb { font-size: 0.75rem; display: none; }
+                    
+                    .page-content { padding: 0.75rem; overflow-x: hidden; }
                     
                     .mobile-overlay {
                         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -761,11 +779,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 /* Mobile Portrait (max-width: 480px) */
                 @media (max-width: 480px) {
                     .top-bar { 
-                        padding: 0 0.5rem;
-                        height: 52px;
+                        padding: 0 0.35rem;
+                        height: 48px;
                     }
                     
-                    .top-actions { gap: 0.35rem; }
+                    .top-actions { gap: 0.25rem; }
                     
                     .icon-btn { 
                         width: 32px; 
@@ -774,43 +792,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     }
                     .icon-btn svg { width: 16px; height: 16px; }
                     
+                    /* Icon only button */
                     .btn-store { 
-                        padding: 0.35rem 0.5rem;
-                        font-size: 0.7rem;
-                        gap: 0.25rem;
+                        padding: 0.4rem;
+                        font-size: 0;
+                        min-width: 32px;
+                        height: 32px;
                     }
-                    .btn-store svg { width: 12px; height: 12px; }
+                    .btn-store svg { width: 14px; height: 14px; }
                     
-                    .breadcrumb { 
-                        font-size: 0.75rem;
-                        max-width: 120px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
+                    /* Very compact branch selector - hide name completely */
+                    .branch-selector-btn {
+                        padding: 0.35rem 0.5rem !important;
+                        gap: 0.25rem !important;
                     }
+                    .branch-name { display: none; }
+                    .branch-arrow { display: none; }
+                    
+                    .breadcrumb { display: none; }
                     
                     .page-content { 
-                        padding: 0.75rem;
-                        padding-bottom: 1.5rem;
+                        padding: 0.5rem;
+                        padding-bottom: 1rem;
+                        overflow-x: hidden;
                     }
                     
-                    .mobile-toggle { padding: 0.15rem; }
+                    .mobile-toggle { padding: 0.1rem; }
                     .mobile-toggle svg { width: 20px; height: 20px; }
                     
                     /* Better sidebar for small screens */
-                    .sidebar { width: 260px; }
-                    .sidebar-header { padding: 1rem; }
-                    .sidebar-content { padding: 1rem 0.75rem; }
-                    .sidebar-footer { padding: 1rem; }
+                    .sidebar { width: 85vw; max-width: 280px; }
+                    .sidebar-header { padding: 0.75rem; }
+                    .sidebar-content { padding: 0.75rem 0.5rem; }
+                    .sidebar-footer { padding: 0.75rem; }
                     
-                    .caja-widget { padding: 0.75rem; margin-bottom: 1rem; }
-                    .caja-amount { font-size: 1rem; }
-                    .caja-buttons { gap: 0.35rem; }
-                    .btn-gastos, .btn-close-caja { font-size: 0.7rem; padding: 0.4rem; }
+                    .caja-widget { padding: 0.6rem; margin-bottom: 0.75rem; }
+                    .caja-amount { font-size: 0.95rem; }
+                    .caja-buttons { gap: 0.25rem; }
+                    .btn-gastos, .btn-close-caja { font-size: 0.65rem; padding: 0.35rem; }
                     
-                    .user-mini { gap: 0.5rem; }
-                    .user-avatar { width: 32px; height: 32px; font-size: 0.7rem; }
-                    .user-name { font-size: 0.8rem; }
+                    .user-mini { gap: 0.35rem; }
+                    .user-avatar { width: 30px; height: 30px; font-size: 0.65rem; }
+                    .user-name { font-size: 0.75rem; }
                 }
                 
                 /* Mobile Landscape - Short screens */
