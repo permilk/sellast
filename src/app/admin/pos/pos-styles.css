@@ -1162,9 +1162,8 @@
 
   .pos-cart-panel {
     order: -1;
-    max-height: 50vh;
-    min-height: 350px;
     height: auto;
+    overflow: visible;
   }
 
   .kpi-grid {
@@ -1217,8 +1216,8 @@
   }
 
   .pos-cart-panel {
-    max-height: 45vh;
-    min-height: 300px;
+    height: auto;
+    overflow: visible;
   }
 
   .category-tab {
@@ -1269,8 +1268,8 @@
   }
 
   .pos-cart-panel {
-    max-height: 40vh;
-    min-height: 250px;
+    height: auto;
+    overflow: visible;
   }
 
   .pos-cart-item {

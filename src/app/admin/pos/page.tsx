@@ -333,9 +333,7 @@ export default function POSSalesPage() {
                         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                         overflow: 'hidden',
                         display: 'flex',
-                        flexDirection: 'column',
-                        height: 'calc(100vh - 140px)',
-                        minHeight: '600px'
+                        flexDirection: 'column'
                     }}>
                         {/* Cart Header - Blue */}
                         <div style={{
