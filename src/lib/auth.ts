@@ -46,23 +46,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
-                const email = credentials.email as string;
-                const password = credentials.password as string;
+                const email = (credentials.email as string).toLowerCase().trim();
+                const password = (credentials.password as string).trim();
 
-                // Find user
-                const user = DEMO_USERS.find(u => u.email === email);
+                // Find user (case-insensitive email)
+                const user = DEMO_USERS.find(u => u.email.toLowerCase() === email);
 
                 if (!user) {
                     return null;
                 }
 
-                // For demo, accept 'demo123' as universal password
-                const isValidPassword = password === DEMO_PASSWORD ||
-                    password === 'admin123' ||
-                    password === 'gerente123' ||
-                    password === 'cajero123';
-
-                if (!isValidPassword) {
+                // Accept any of the demo passwords
+                const validPasswords = ['demo123', 'admin123', 'gerente123', 'cajero123'];
+                if (!validPasswords.includes(password)) {
                     return null;
                 }
 
