@@ -267,8 +267,41 @@ export default function AdminDashboard() {
                 .view-more { display: block; text-align: center; margin-top: 1rem; color: #2563eb; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
 
                 @media (max-width: 1024px) {
-                    .kpi-grid { grid-template-columns: 1fr 1fr; }
+                    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
                     .content-grid { grid-template-columns: 1fr; }
+                }
+                
+                @media (max-width: 768px) {
+                    .welcome-section h1 { font-size: 1.4rem; }
+                    .kpi-card { padding: 1rem; }
+                    .kpi-value { font-size: 1.25rem; }
+                    .kpi-icon { width: 40px; height: 40px; }
+                    .main-chart-panel, .side-panel { padding: 1rem; }
+                    .panel-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+                    .panel-header h3 { font-size: 1rem; }
+                }
+                
+                @media (max-width: 480px) {
+                    .kpi-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+                    .kpi-card { padding: 0.875rem; gap: 0.75rem; }
+                    .kpi-icon { width: 36px; height: 36px; }
+                    .kpi-icon svg { width: 18px; height: 18px; }
+                    .kpi-label { font-size: 0.75rem; }
+                    .kpi-value { font-size: 1.1rem; }
+                    .kpi-trend, .kpi-sub { font-size: 0.65rem; }
+                    
+                    .welcome-section h1 { font-size: 1.2rem; gap: 0.35rem !important; }
+                    .welcome-section h1 svg { width: 22px; height: 22px; }
+                    .welcome-section p { font-size: 0.85rem; }
+                    
+                    .chart-placeholder { height: 180px; }
+                    .bar-group span { font-size: 0.65rem; }
+                    
+                    .activity-item { gap: 0.75rem; }
+                    .act-icon { width: 30px; height: 30px; font-size: 0.7rem; }
+                    .act-title { font-size: 0.8rem; }
+                    .act-time { font-size: 0.65rem; }
+                    .act-amount { font-size: 0.8rem; }
                 }
             `}</style>
             </div>

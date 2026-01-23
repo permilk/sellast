@@ -1151,15 +1151,20 @@
 /* ============================================
    RESPONSIVE
    ============================================ */
+
+/* Tablet Landscape (max-width: 1024px) */
 @media (max-width: 1024px) {
   .pos-sales-layout {
     grid-template-columns: 1fr;
     height: auto;
+    gap: 1rem;
   }
 
   .pos-cart-panel {
     order: -1;
-    max-height: 400px;
+    max-height: 50vh;
+    min-height: 350px;
+    height: auto;
   }
 
   .kpi-grid {
@@ -1169,18 +1174,175 @@
   .chart-grid {
     grid-template-columns: 1fr;
   }
+
+  .pos-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+  }
 }
 
+/* Tablet Portrait (max-width: 768px) */
 @media (max-width: 768px) {
   .pos-header-nav {
     display: none;
   }
 
   .kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .pos-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .product-tile {
+    padding: 0.5rem;
+  }
+
+  .product-tile-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .product-tile-name {
+    font-size: 0.7rem;
+  }
+
+  .product-tile-price {
+    font-size: 0.8rem;
+  }
+
+  .pos-cart-panel {
+    max-height: 45vh;
+    min-height: 300px;
+  }
+
+  .category-tab {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .pos-category-tabs {
+    padding: 0.75rem 1rem;
+    gap: 0.35rem;
+  }
+}
+
+/* Mobile Portrait (max-width: 480px) */
+@media (max-width: 480px) {
+  .pos-sales-layout {
+    gap: 0.75rem;
   }
 
   .pos-products-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .product-tile {
+    padding: 0.35rem;
+  }
+
+  .product-tile-image {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-tile-name {
+    font-size: 0.65rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .product-tile-price {
+    font-size: 0.75rem;
+  }
+
+  .product-tile-category {
+    display: none;
+  }
+
+  .pos-cart-panel {
+    max-height: 40vh;
+    min-height: 250px;
+  }
+
+  .pos-cart-item {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .pos-cart-item-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pos-cart-item-name {
+    font-size: 0.75rem;
+  }
+
+  .pos-cart-item-price {
+    font-size: 0.7rem;
+  }
+
+  .pos-cart-item-qty button {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .pos-cart-item-qty span {
+    width: 24px;
+    font-size: 0.8rem;
+  }
+
+  .pos-cart-item-total {
+    font-size: 0.85rem;
+    min-width: 50px;
+  }
+
+  .category-tab {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .pos-category-tabs {
+    padding: 0.5rem 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .pos-search-input input {
+    padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+    font-size: 0.85rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .kpi-card {
+    padding: 0.875rem 1rem;
+    min-height: 80px;
+  }
+
+  .kpi-card-value {
+    font-size: 1.5rem;
+  }
+
+  .kpi-card-label {
+    font-size: 0.75rem;
+  }
+
+  .pos-modal {
+    max-width: 95%;
+    margin: 0 0.5rem;
+    max-height: 90vh;
   }
 }

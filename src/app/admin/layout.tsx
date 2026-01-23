@@ -688,10 +688,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 .page-content { padding: 2rem; flex: 1; overflow-y: auto; }
 
                 /* MEDIA QUERIES */
-                @media (min-width: 769px) {
+                
+                /* Desktop: Hide mobile toggle */
+                @media (min-width: 1025px) {
                     .mobile-toggle { display: none; }
                 }
-
+                
+                /* Tablet Landscape & Small Desktop (769px - 1024px) */
+                @media (min-width: 769px) and (max-width: 1024px) {
+                    .mobile-toggle { display: none; }
+                    .sidebar { width: 200px; }
+                    .main-content { margin-left: 200px; }
+                    .top-bar { padding: 0 1rem; }
+                    .page-content { padding: 1.5rem; }
+                    
+                    .nav-item { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+                    .nav-label { font-size: 0.85rem; }
+                    .logo-text { font-size: 1.25rem; }
+                    .caja-amount { font-size: 1.1rem; }
+                    
+                    .btn-store span:last-child { display: none; }
+                    .btn-store { padding: 0.5rem; min-width: 40px; justify-content: center; }
+                }
+                
+                /* Tablet Portrait (481px - 768px) */
                 @media (max-width: 768px) {
                     .sidebar {
                         transform: translateX(-100%);
@@ -701,7 +721,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     .sidebar.open { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
                     
                     .main-content { margin-left: 0; }
-                    .top-bar { padding: 0 1rem; }
+                    
+                    .top-bar { 
+                        padding: 0 0.75rem; 
+                        height: 56px;
+                        gap: 0.5rem;
+                    }
+                    
+                    .top-actions { 
+                        gap: 0.5rem; 
+                        flex-shrink: 0;
+                    }
+                    
+                    .icon-btn { 
+                        width: 36px; 
+                        height: 36px; 
+                        border-radius: 10px;
+                    }
+                    
+                    .btn-store { 
+                        padding: 0.4rem 0.6rem;
+                        font-size: 0.75rem;
+                        border-radius: 8px;
+                    }
+                    .btn-store svg { width: 14px; height: 14px; }
+                    
+                    .breadcrumb { font-size: 0.8rem; }
+                    
                     .page-content { padding: 1rem; }
                     
                     .mobile-overlay {
@@ -710,6 +756,61 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         backdrop-filter: blur(2px);
                         z-index: 45;
                     }
+                }
+                
+                /* Mobile Portrait (max-width: 480px) */
+                @media (max-width: 480px) {
+                    .top-bar { 
+                        padding: 0 0.5rem;
+                        height: 52px;
+                    }
+                    
+                    .top-actions { gap: 0.35rem; }
+                    
+                    .icon-btn { 
+                        width: 32px; 
+                        height: 32px;
+                        border-radius: 8px;
+                    }
+                    .icon-btn svg { width: 16px; height: 16px; }
+                    
+                    .btn-store { 
+                        padding: 0.35rem 0.5rem;
+                        font-size: 0.7rem;
+                        gap: 0.25rem;
+                    }
+                    .btn-store svg { width: 12px; height: 12px; }
+                    
+                    .breadcrumb { 
+                        font-size: 0.75rem;
+                        max-width: 120px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    
+                    .page-content { 
+                        padding: 0.75rem;
+                        padding-bottom: 1.5rem;
+                    }
+                    
+                    .mobile-toggle { padding: 0.15rem; }
+                    .mobile-toggle svg { width: 20px; height: 20px; }
+                    
+                    /* Better sidebar for small screens */
+                    .sidebar { width: 260px; }
+                    .sidebar-header { padding: 1rem; }
+                    .sidebar-content { padding: 1rem 0.75rem; }
+                    .sidebar-footer { padding: 1rem; }
+                    
+                    .caja-widget { padding: 0.75rem; margin-bottom: 1rem; }
+                    .caja-amount { font-size: 1rem; }
+                    .caja-buttons { gap: 0.35rem; }
+                    .btn-gastos, .btn-close-caja { font-size: 0.7rem; padding: 0.4rem; }
+                    
+                    .user-mini { gap: 0.5rem; }
+                    .user-avatar { width: 32px; height: 32px; font-size: 0.7rem; }
+                    .user-name { font-size: 0.8rem; }
                 }
             `}</style>
         </div >
