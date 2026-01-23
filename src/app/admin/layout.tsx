@@ -812,6 +812,67 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     .user-avatar { width: 32px; height: 32px; font-size: 0.7rem; }
                     .user-name { font-size: 0.8rem; }
                 }
+                
+                /* Mobile Landscape - Short screens */
+                @media (max-height: 500px) and (orientation: landscape) {
+                    .sidebar {
+                        overflow-y: auto;
+                    }
+                    
+                    .sidebar-header {
+                        padding: 0.5rem 1rem;
+                    }
+                    
+                    .logo-text { font-size: 1.1rem; }
+                    
+                    .sidebar-content {
+                        padding: 0.5rem 0.75rem;
+                        flex: 1;
+                        min-height: 0;
+                    }
+                    
+                    .nav-item {
+                        padding: 0.4rem 0.75rem;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .nav-children .nav-item {
+                        padding: 0.35rem 0.75rem 0.35rem 2rem;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .sidebar-footer {
+                        padding: 0.5rem 0.75rem;
+                        flex-shrink: 0;
+                    }
+                    
+                    .caja-widget {
+                        padding: 0.5rem;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .caja-header { margin-bottom: 0.25rem; }
+                    .caja-title { font-size: 0.65rem; }
+                    .caja-badge { font-size: 0.55rem; padding: 1px 6px; }
+                    .caja-amount { font-size: 0.9rem; margin-bottom: 0.5rem; }
+                    .caja-buttons { gap: 0.25rem; }
+                    .btn-gastos, .btn-close-caja { font-size: 0.65rem; padding: 0.3rem; }
+                    
+                    .user-mini { gap: 0.35rem; }
+                    .user-avatar { width: 28px; height: 28px; font-size: 0.65rem; }
+                    .user-name { font-size: 0.7rem; }
+                    .user-role { font-size: 0.6rem !important; padding: 1px 6px !important; }
+                    
+                    /* Main content adjustments for landscape */
+                    .top-bar {
+                        height: 44px;
+                        padding: 0 0.5rem;
+                    }
+                    
+                    .page-content {
+                        padding: 0.5rem;
+                    }
+                }
             `}</style>
         </div >
     );
