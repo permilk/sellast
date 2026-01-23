@@ -99,5 +99,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         strategy: 'jwt',
         maxAge: 24 * 60 * 60 // 24 hours
     },
+    trustHost: true,
     secret: process.env.NEXTAUTH_SECRET || 'sellast-secret-key-change-in-production'
 });
