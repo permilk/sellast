@@ -95,6 +95,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         strategy: 'jwt',
         maxAge: 24 * 60 * 60 // 24 hours
     },
+    debug: process.env.NODE_ENV === 'development',
     trustHost: true,
-    secret: process.env.NEXTAUTH_SECRET || 'sellast-secret-key-change-in-production'
+    secret: process.env.NEXTAUTH_SECRET || 'sellast-secret-key-change-in-production',
+    cookies: {
+        sessionToken: {
+            name: process.env.NODE_ENV === 'production'
+                ? '__Secure-authjs.session-token'
+                : 'authjs.session-token',
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production'
+            }
+        }
+    }
 });
